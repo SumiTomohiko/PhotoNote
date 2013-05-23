@@ -21,6 +21,8 @@
             </intent-filter>
         </activity>
     </application>
+
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 </manifest>
 <!--
 vim: tabstop=4 shiftwidth=4 expandtab softtabstop=4
