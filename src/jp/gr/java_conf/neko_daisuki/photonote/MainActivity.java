@@ -2,26 +2,51 @@ package jp.gr.java_conf.neko_daisuki.photonote;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.graphics.Bitmap.CompressFormat;
+import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Menu;
+import android.view.View.OnClickListener;
+import android.view.View;
+import android.widget.ImageView;
 
 public class MainActivity extends Activity {
 
-    private static class Entry {
+    private class ShotButtonOnClickListener implements OnClickListener {
+
+        public void onClick(View view) {
+            shot();
+        }
+    }
+
+    private class Entry {
 
         public String name;
 
         public Entry(String name) {
             this.name = name;
+        }
+
+        public String getDirectory() {
+            return String.format("%s/%s", getEntriesDirectory(), name);
+        }
+
+        public String getOriginalPath() {
+            return String.format("%s/original.png", getDirectory());
         }
     }
 
@@ -35,6 +60,7 @@ public class MainActivity extends Activity {
     }
 
     private static final String LOG_TAG = "photonote";
+    private static final int REQUEST_CAPTURE = 42;
 
     private List<Group> mGroups;
 
@@ -42,6 +68,10 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        View shotButton = findViewById(R.id.shot_button);
+        shotButton.setOnClickListener(new ShotButtonOnClickListener());
+
         makeDirectories();
     }
 
@@ -74,6 +104,39 @@ public class MainActivity extends Activity {
         super.onResume();
 
         mGroups = readGroups(readEntries());
+    }
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if ((requestCode != REQUEST_CAPTURE) || (resultCode != RESULT_OK)) {
+            return;
+        }
+
+        Entry entry = new Entry(makeNewEntryName());
+        new File(entry.getDirectory()).mkdir();
+
+        Bitmap bitmap = (Bitmap)data.getExtras().get("data");
+        String path = entry.getOriginalPath();
+        OutputStream out;
+        try {
+            out = new FileOutputStream(path);
+        }
+        catch (FileNotFoundException e) {
+            String fmt = "failed to open %s: %s";
+            Log.e(LOG_TAG, String.format(fmt, path, e.getMessage()));
+            return;
+        }
+        try {
+            try {
+                bitmap.compress(CompressFormat.PNG, 100, out);
+            }
+            finally {
+                out.close();
+            }
+        }
+        catch (IOException e) {
+            String fmt = "failed to close %s: %s";
+            Log.e(LOG_TAG, String.format(fmt, path, e.getMessage()));
+        }
     }
 
     private String getDataDirectory() {
@@ -125,6 +188,16 @@ public class MainActivity extends Activity {
         }
 
         return group;
+    }
+
+    private void shot() {
+        Intent i = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        startActivityForResult(i, REQUEST_CAPTURE);
+    }
+
+    private String makeNewEntryName() {
+        /* TODO */
+        return "foo";
     }
 }
 
