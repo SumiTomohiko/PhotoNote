@@ -15,19 +15,75 @@ import java.util.List;
 import java.util.Map;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View.OnClickListener;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.BaseExpandableListAdapter;
 import android.widget.ExpandableListView;
-import android.widget.SimpleExpandableListAdapter;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 public class MainActivity extends Activity {
+
+    private class ListAdapter extends BaseExpandableListAdapter {
+
+        public boolean isChildSelectable(int groupPosition, int childPosition) {
+            return false;
+        }
+
+        public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
+            View view = mInflater.inflate(R.layout.child_row, parent, false);
+            Entry entry = (Entry)getChild(groupPosition, childPosition);
+            ((TextView)view.findViewById(R.id.name)).setText(entry.getName());
+            return view;
+        }
+
+        public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
+            View view = mInflater.inflate(R.layout.group_row, parent, false);
+            Group group = (Group)getGroup(groupPosition);
+            ((TextView)view.findViewById(R.id.name)).setText(group.getName());
+            return view;
+        }
+
+        public boolean hasStableIds() {
+            return true;
+        }
+
+        public long getGroupId(int groupPosition) {
+            return mGroups.get(groupPosition).getName().hashCode();
+        }
+
+        public long getChildId(int groupPosition, int childPosition) {
+            Group group = mGroups.get(groupPosition);
+            Entry entry = group.getEntries().get(childPosition);
+            return entry.getName().hashCode();
+        }
+
+        public Object getChild(int groupPosition, int childPosition) {
+            return mGroups.get(groupPosition).getEntries().get(childPosition);
+        }
+
+        public Object getGroup(int groupPosition) {
+            return mGroups.get(groupPosition);
+        }
+
+        public int getChildrenCount(int groupPosition) {
+            return mGroups.get(groupPosition).getEntries().size();
+        }
+
+        public int getGroupCount() {
+            return mGroups.size();
+        }
+    }
 
     private class ShotButtonOnClickListener implements OnClickListener {
 
@@ -79,14 +135,15 @@ public class MainActivity extends Activity {
     private static final String LOG_TAG = "photonote";
     private static final int REQUEST_CAPTURE = 42;
 
-    // model
+    // document
     private List<Group> mGroups;
 
-    // widgets
+    // view
     private ExpandableListView mList;
 
     // helpers
     private SimpleDateFormat mDateFormat;
+    private LayoutInflater mInflater;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,6 +157,8 @@ public class MainActivity extends Activity {
         setupFileTree();
 
         mDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String service = Context.LAYOUT_INFLATER_SERVICE;
+        mInflater = (LayoutInflater)getSystemService(service);
     }
 
     @Override
@@ -255,35 +314,7 @@ public class MainActivity extends Activity {
     }
 
     private void updateView() {
-        List<Map<String, String>> parents = new ArrayList<Map<String, String>>();
-        for (Group group: mGroups) {
-            Map<String, String> parent = new HashMap<String, String>();
-            parent.put("parent_text", group.getName());
-            parents.add(parent);
-        }
-
-        List<List<Map<String, String>>> childrenList = new ArrayList<List<Map<String, String>>>();
-        for (Group group: mGroups) {
-            List<Map<String, String>> children = new ArrayList<Map<String, String>>();
-            for (Entry entry: group.getEntries()) {
-                Map<String, String> child = new HashMap<String, String>();
-                child.put("child_text", entry.getName());
-                children.add(child);
-            }
-
-            childrenList.add(children);
-        }
-
-        SimpleExpandableListAdapter adapter = new SimpleExpandableListAdapter(
-                this,
-                parents,
-                android.R.layout.simple_expandable_list_item_1,
-                new String[] { "parent_text" },
-                new int[] { android.R.id.text1 },
-                childrenList,
-                R.layout.row,
-                new String[] { "child_text" },
-                new int[] { R.id.child_text });
+        ListAdapter adapter = new ListAdapter();
         mList.setAdapter(adapter);
     }
 }
