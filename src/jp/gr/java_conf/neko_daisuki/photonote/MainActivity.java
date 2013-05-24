@@ -37,14 +37,14 @@ public class MainActivity extends Activity {
 
     private class Entry {
 
-        public String name;
+        private String mName;
 
         public Entry(String name) {
-            this.name = name;
+            mName = name;
         }
 
         public String getDirectory() {
-            return String.format("%s/%s", getEntriesDirectory(), name);
+            return String.format("%s/%s", getEntriesDirectory(), mName);
         }
 
         public String getOriginalPath() {
@@ -54,10 +54,14 @@ public class MainActivity extends Activity {
 
     private static class Group {
 
-        public List<Entry> entries;
+        public List<Entry> mEntries;
 
         public Group() {
-            this.entries = new ArrayList<Entry>();
+            mEntries = new ArrayList<Entry>();
+        }
+
+        public List<Entry> getEntries() {
+            return mEntries;
         }
     }
 
@@ -214,7 +218,7 @@ public class MainActivity extends Activity {
         BufferedReader in = new BufferedReader(new FileReader(path));
         String name;
         while ((name = in.readLine()) != null) {
-            group.entries.add(entries.get(name));
+            group.getEntries().add(entries.get(name));
         }
 
         return group;
