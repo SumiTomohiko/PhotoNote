@@ -24,7 +24,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.View.OnClickListener;
 import android.view.View;
-import android.widget.ImageView;
+import android.widget.ExpandableListView;
+import android.widget.SimpleExpandableListAdapter;
 
 public class MainActivity extends Activity {
 
@@ -43,6 +44,10 @@ public class MainActivity extends Activity {
             mName = name;
         }
 
+        public String getName() {
+            return mName;
+        }
+
         public String getDirectory() {
             return String.format("%s/%s", getEntriesDirectory(), mName);
         }
@@ -54,22 +59,33 @@ public class MainActivity extends Activity {
 
     private static class Group {
 
-        public List<Entry> mEntries;
+        private String mName;
+        private List<Entry> mEntries;
 
-        public Group() {
+        public Group(String name) {
+            mName = name;
             mEntries = new ArrayList<Entry>();
         }
 
         public List<Entry> getEntries() {
             return mEntries;
         }
+
+        public String getName() {
+            return mName;
+        }
     }
 
     private static final String LOG_TAG = "photonote";
     private static final int REQUEST_CAPTURE = 42;
 
+    // model
     private List<Group> mGroups;
 
+    // widgets
+    private ExpandableListView mList;
+
+    // helpers
     private SimpleDateFormat mDateFormat;
 
     @Override
@@ -79,6 +95,7 @@ public class MainActivity extends Activity {
 
         View shotButton = findViewById(R.id.shot_button);
         shotButton.setOnClickListener(new ShotButtonOnClickListener());
+        mList = (ExpandableListView)findViewById(R.id.list);
 
         setupFileTree();
 
@@ -135,6 +152,7 @@ public class MainActivity extends Activity {
         super.onResume();
 
         mGroups = readGroups(readEntries());
+        updateView();
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -171,6 +189,8 @@ public class MainActivity extends Activity {
         }
 
         Log.i(LOG_TAG, String.format("added %s.", path));
+
+        updateView();
     }
 
     private String getDataDirectory() {
@@ -199,26 +219,27 @@ public class MainActivity extends Activity {
         List<Group> groups = new ArrayList<Group>();
 
         for (File file: new File(getGroupsDirectory()).listFiles()) {
-            String filePath = file.getAbsolutePath();
+            String name = file.getName();
             try {
-                groups.add(readGroup(filePath, entries));
+                groups.add(readGroup(name, entries));
             }
             catch (IOException e) {
-                String message = String.format("failed to open %s.", filePath);
-                Log.e(LOG_TAG, message);
+                String fmt = "failed to read a group of %s.";
+                Log.e(LOG_TAG, String.format(fmt, name));
             }
         }
 
         return groups;
     }
 
-    private Group readGroup(String path, Map<String, Entry> entries) throws IOException {
-        Group group = new Group();
+    private Group readGroup(String name, Map<String, Entry> entries) throws IOException {
+        Group group = new Group(name);
 
+        String path = String.format("%s/%s", getGroupsDirectory(), name);
         BufferedReader in = new BufferedReader(new FileReader(path));
-        String name;
-        while ((name = in.readLine()) != null) {
-            group.getEntries().add(entries.get(name));
+        String entryName;
+        while ((entryName = in.readLine()) != null) {
+            group.getEntries().add(entries.get(entryName));
         }
 
         return group;
@@ -231,6 +252,39 @@ public class MainActivity extends Activity {
 
     private String makeNewEntryName() {
         return mDateFormat.format(new Date());
+    }
+
+    private void updateView() {
+        List<Map<String, String>> parents = new ArrayList<Map<String, String>>();
+        for (Group group: mGroups) {
+            Map<String, String> parent = new HashMap<String, String>();
+            parent.put("parent_text", group.getName());
+            parents.add(parent);
+        }
+
+        List<List<Map<String, String>>> childrenList = new ArrayList<List<Map<String, String>>>();
+        for (Group group: mGroups) {
+            List<Map<String, String>> children = new ArrayList<Map<String, String>>();
+            for (Entry entry: group.getEntries()) {
+                Map<String, String> child = new HashMap<String, String>();
+                child.put("child_text", entry.getName());
+                children.add(child);
+            }
+
+            childrenList.add(children);
+        }
+
+        SimpleExpandableListAdapter adapter = new SimpleExpandableListAdapter(
+                this,
+                parents,
+                android.R.layout.simple_expandable_list_item_1,
+                new String[] { "parent_text" },
+                new int[] { android.R.id.text1 },
+                childrenList,
+                R.layout.row,
+                new String[] { "child_text" },
+                new int[] { R.id.child_text });
+        mList.setAdapter(adapter);
     }
 }
 
