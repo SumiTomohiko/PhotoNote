@@ -76,7 +76,7 @@ public class MainActivity extends Activity {
         View shotButton = findViewById(R.id.shot_button);
         shotButton.setOnClickListener(new ShotButtonOnClickListener());
 
-        makeDirectories();
+        setupFileTree();
 
         mDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     }
@@ -86,6 +86,27 @@ public class MainActivity extends Activity {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
+    }
+
+    private void setupFileTree() {
+        makeDirectories();
+        makeDefaultGroup();
+    }
+
+    private void makeDefaultGroup() {
+        boolean done;
+        String path = String.format("%s/default", getGroupsDirectory());
+        try {
+            done = new File(path).createNewFile();
+        }
+        catch (IOException e) {
+            String fmt = "failed to open %s: %s";
+            Log.e(LOG_TAG, String.format(fmt, path, e.getMessage()));
+            return;
+        }
+        if (done) {
+            Log.i(LOG_TAG, String.format("created: %s", path));
+        }
     }
 
     private void makeDirectories() {
