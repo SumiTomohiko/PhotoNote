@@ -7,7 +7,9 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,6 +66,8 @@ public class MainActivity extends Activity {
 
     private List<Group> mGroups;
 
+    private SimpleDateFormat mDateFormat;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -73,6 +77,8 @@ public class MainActivity extends Activity {
         shotButton.setOnClickListener(new ShotButtonOnClickListener());
 
         makeDirectories();
+
+        mDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     }
 
     @Override
@@ -136,7 +142,10 @@ public class MainActivity extends Activity {
         catch (IOException e) {
             String fmt = "failed to close %s: %s";
             Log.e(LOG_TAG, String.format(fmt, path, e.getMessage()));
+            return;
         }
+
+        Log.i(LOG_TAG, String.format("added %s.", path));
     }
 
     private String getDataDirectory() {
@@ -196,8 +205,7 @@ public class MainActivity extends Activity {
     }
 
     private String makeNewEntryName() {
-        /* TODO */
-        return "foo";
+        return mDateFormat.format(new Date());
     }
 }
 
