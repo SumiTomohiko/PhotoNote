@@ -157,6 +157,10 @@ public class MainActivity extends Activity {
         }
     }
 
+    private enum Key {
+        SHOTTING_GROUP_NAME
+    }
+
     private static final String LOG_TAG = "photonote";
     private static final int REQUEST_CAPTURE = 42;
 
@@ -232,6 +236,16 @@ public class MainActivity extends Activity {
             }
             Log.e(LOG_TAG, String.format("failed to mkdir: %s", directory));
         }
+    }
+
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(Key.SHOTTING_GROUP_NAME.name(), mShottingGroupName);
+    }
+
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        mShottingGroupName = savedInstanceState.getString(Key.SHOTTING_GROUP_NAME.name());
     }
 
     protected void onResume() {
