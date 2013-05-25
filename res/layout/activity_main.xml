@@ -9,7 +9,7 @@
         android:layout_height="match_parent"
         android:layout_weight="1"/>
     <Button
-        android:id="@+id/add_group_button"
+        android:id="@+id/add_a_new_group_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/add_a_new_group"/>

@@ -16,7 +16,10 @@ import java.util.List;
 import java.util.Map;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.Bitmap;
@@ -29,11 +32,52 @@ import android.view.View.OnClickListener;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 public class MainActivity extends Activity {
+
+    private static class DialogCancelListener implements DialogInterface.OnClickListener {
+
+        public void onClick(DialogInterface dialog, int which) {
+        }
+    }
+
+    private class DialogAddGroupListener implements DialogInterface.OnClickListener {
+
+        public void onClick(DialogInterface dialog, int which) {
+            EditText text = (EditText)mGroupNameView.findViewById(R.id.name);
+            CharSequence name = text.getText();
+            if (name.length() == 0) {
+                return;
+            }
+            makeGroup(name);
+            updateData();
+            updateList();
+        }
+    }
+
+    private abstract class DialogCreatingProc {
+
+        public abstract Dialog create();
+    }
+
+    private class GroupNameDialogCreatingProc extends DialogCreatingProc {
+
+        public Dialog create() {
+            return createGroupNameDialog();
+        }
+    }
+
+    private class AddGroupListener implements OnClickListener {
+
+        public void onClick(View view) {
+            showDialog(DIALOG_GROUP_NAME);
+        }
+    }
 
     private class ListAdapter extends BaseExpandableListAdapter {
 
@@ -163,12 +207,13 @@ public class MainActivity extends Activity {
 
     private static final String LOG_TAG = "photonote";
     private static final int REQUEST_CAPTURE = 42;
+    private static final int DIALOG_GROUP_NAME = 42;
 
     // document
     private List<Group> mGroups;
 
     // view
-    private ExpandableListView mList;
+    private ListAdapter mAdapter;
 
     // stateful helpers
     private String mShottingGroupName;
@@ -177,19 +222,35 @@ public class MainActivity extends Activity {
     // stateless helpers
     private SimpleDateFormat mDateFormat;
     private LayoutInflater mInflater;
+    private Map<Integer, DialogCreatingProc> mDialogCreatingProcs;
+    private View mGroupNameView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mList = (ExpandableListView)findViewById(R.id.list);
+        mGroups = new ArrayList<Group>();
+
+        ExpandableListView list = (ExpandableListView)findViewById(R.id.list);
+        mAdapter = new ListAdapter();
+        list.setAdapter(mAdapter);
+
+        Button addGroupButton = (Button)findViewById(R.id.add_a_new_group_button);
+        addGroupButton.setOnClickListener(new AddGroupListener());
 
         setupFileTree();
 
         mDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String service = Context.LAYOUT_INFLATER_SERVICE;
         mInflater = (LayoutInflater)getSystemService(service);
+
+        mDialogCreatingProcs = new HashMap<Integer, DialogCreatingProc>();
+        mDialogCreatingProcs.put(
+                new Integer(DIALOG_GROUP_NAME),
+                new GroupNameDialogCreatingProc());
+
+        mGroupNameView = mInflater.inflate(R.layout.dialog_group_name, null);
     }
 
     @Override
@@ -204,9 +265,9 @@ public class MainActivity extends Activity {
         makeDefaultGroup();
     }
 
-    private void makeDefaultGroup() {
+    private void makeGroup(CharSequence name) {
         boolean done;
-        String path = String.format("%s/default", getGroupsDirectory());
+        String path = String.format("%s/%s", getGroupsDirectory(), name);
         try {
             done = new File(path).createNewFile();
         }
@@ -216,8 +277,12 @@ public class MainActivity extends Activity {
             return;
         }
         if (done) {
-            Log.i(LOG_TAG, String.format("created: %s", path));
+            Log.i(LOG_TAG, String.format("created a new group: %s", path));
         }
+    }
+
+    private void makeDefaultGroup() {
+        makeGroup("default");
     }
 
     private void makeDirectories() {
@@ -238,6 +303,10 @@ public class MainActivity extends Activity {
         }
     }
 
+    protected Dialog onCreateDialog(int id) {
+        return mDialogCreatingProcs.get(new Integer(id)).create();
+    }
+
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putString(Key.SHOTTING_GROUP_NAME.name(), mShottingGroupName);
@@ -251,12 +320,12 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
 
-        mGroups = readGroups(readEntries());
+        updateData();
         if (mResultEntry != null) {
             findGroupOfName(mShottingGroupName).getEntries().add(mResultEntry);
+            updateList();
             mResultEntry = null;
         }
-        buildView();
     }
 
     protected void onPause() {
@@ -363,11 +432,6 @@ public class MainActivity extends Activity {
         return mDateFormat.format(new Date());
     }
 
-    private void buildView() {
-        ListAdapter adapter = new ListAdapter();
-        mList.setAdapter(adapter);
-    }
-
     private Group findGroupOfName(String name) {
         for (Group group: mGroups) {
             if (group.getName().equals(name)) {
@@ -399,6 +463,22 @@ public class MainActivity extends Activity {
                 writer.close();
             }
         }
+    }
+
+    private Dialog createGroupNameDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setView(mGroupNameView);
+        builder.setPositiveButton("Okey", new DialogAddGroupListener());
+        builder.setNegativeButton("Cancel", new DialogCancelListener());
+        return builder.create();
+    }
+
+    private void updateData() {
+        mGroups = readGroups(readEntries());
+    }
+
+    private void updateList() {
+        mAdapter.notifyDataSetChanged();
     }
 }
 
