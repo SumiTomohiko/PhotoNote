@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -133,7 +134,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    private static class Group {
+    private class Group {
 
         private String mName;
         private List<Entry> mEntries;
@@ -149,6 +150,10 @@ public class MainActivity extends Activity {
 
         public String getName() {
             return mName;
+        }
+
+        public String getPath() {
+            return String.format("%s/%s", getGroupsDirectory(), getName());
         }
     }
 
@@ -238,6 +243,11 @@ public class MainActivity extends Activity {
             mResultEntry = null;
         }
         buildView();
+    }
+
+    protected void onPause() {
+        super.onPause();
+        saveGroups();
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -351,6 +361,30 @@ public class MainActivity extends Activity {
             }
         }
         return null;
+    }
+
+    private void saveGroups() {
+        for (Group group: mGroups) {
+            String path = group.getPath();
+            OutputStream out;
+            try {
+                out = new FileOutputStream(path);
+            }
+            catch (FileNotFoundException e) {
+                String fmt = "failed to write %s: %s";
+                Log.e(LOG_TAG, String.format(fmt, path, e.getMessage()));
+                continue;
+            }
+            PrintWriter writer = new PrintWriter(out);
+            try {
+                for (Entry entry: group.getEntries()) {
+                    writer.println(entry.getName());
+                }
+            }
+            finally {
+                writer.close();
+            }
+        }
     }
 }
 
