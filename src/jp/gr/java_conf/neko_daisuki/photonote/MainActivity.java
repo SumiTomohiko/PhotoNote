@@ -42,15 +42,17 @@ public class MainActivity extends Activity {
 
         public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
             View view = mInflater.inflate(R.layout.child_row, parent, false);
+            TextView text = (TextView)view.findViewById(R.id.name);
             Entry entry = (Entry)getChild(groupPosition, childPosition);
-            ((TextView)view.findViewById(R.id.name)).setText(entry.getName());
+            text.setText(entry.getName());
             return view;
         }
 
         public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
             View view = mInflater.inflate(R.layout.group_row, parent, false);
+            TextView text = (TextView)view.findViewById(R.id.name);
             Group group = (Group)getGroup(groupPosition);
-            ((TextView)view.findViewById(R.id.name)).setText(group.getName());
+            text.setText(group.getName());
             return view;
         }
 
