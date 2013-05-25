@@ -21,6 +21,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.Bitmap;
 import android.os.Bundle;
@@ -46,6 +47,15 @@ public class MainActivity extends Activity {
         }
     }
 
+    private class DialogDeleteGroupListener implements DialogInterface.OnClickListener {
+
+        public void onClick(DialogInterface dialog, int which) {
+            deleteGroup(mDeletingGroup);
+            updateData();
+            updateList();
+        }
+    }
+
     private class DialogAddGroupListener implements DialogInterface.OnClickListener {
 
         public void onClick(DialogInterface dialog, int which) {
@@ -63,6 +73,13 @@ public class MainActivity extends Activity {
     private abstract class DialogCreatingProc {
 
         public abstract Dialog create();
+    }
+
+    private class DeleteGroupDialogCreatingProc extends DialogCreatingProc {
+
+        public Dialog create() {
+            return createDeleteGroupDialog();
+        }
     }
 
     private class GroupNameDialogCreatingProc extends DialogCreatingProc {
@@ -137,23 +154,50 @@ public class MainActivity extends Activity {
 
         private View getGroupControlView(int groupPosition, int childPosition, ViewGroup parent) {
             View view = mInflater.inflate(R.layout.child_last_row, parent, false);
-            View shotButton = view.findViewById(R.id.shot_button);
             Group group = (Group)getGroup(groupPosition);
+            View shotButton = view.findViewById(R.id.shot_button);
             shotButton.setOnClickListener(new ShotButtonOnClickListener(group));
+            View deleteButton = view.findViewById(R.id.delete_button);
+            deleteButton.setOnClickListener(new DeleteButtonOnClickListener(group));
             return view;
         }
     }
 
-    private class ShotButtonOnClickListener implements OnClickListener {
+    private abstract class GroupButtonOnClickListener implements OnClickListener {
 
         private Group mGroup;
 
-        public ShotButtonOnClickListener(Group group) {
+        public GroupButtonOnClickListener(Group group) {
             mGroup = group;
         }
 
+        public abstract void onClick(View view);
+
+        protected Group getGroup() {
+            return mGroup;
+        }
+    }
+
+    private class DeleteButtonOnClickListener extends GroupButtonOnClickListener {
+
+        public DeleteButtonOnClickListener(Group group) {
+            super(group);
+        }
+
         public void onClick(View view) {
-            shot(mGroup);
+            mDeletingGroup = getGroup();
+            showDialog(DIALOG_DELETE_GROUP);
+        }
+    }
+
+    private class ShotButtonOnClickListener extends GroupButtonOnClickListener {
+
+        public ShotButtonOnClickListener(Group group) {
+            super(group);
+        }
+
+        public void onClick(View view) {
+            shot(getGroup());
         }
     }
 
@@ -208,6 +252,7 @@ public class MainActivity extends Activity {
     private static final String LOG_TAG = "photonote";
     private static final int REQUEST_CAPTURE = 42;
     private static final int DIALOG_GROUP_NAME = 42;
+    private static final int DIALOG_DELETE_GROUP = 43;
 
     // document
     private List<Group> mGroups;
@@ -218,6 +263,7 @@ public class MainActivity extends Activity {
     // stateful helpers
     private String mShottingGroupName;
     private Entry mResultEntry;
+    private Group mDeletingGroup;
 
     // stateless helpers
     private SimpleDateFormat mDateFormat;
@@ -249,6 +295,9 @@ public class MainActivity extends Activity {
         mDialogCreatingProcs.put(
                 new Integer(DIALOG_GROUP_NAME),
                 new GroupNameDialogCreatingProc());
+        mDialogCreatingProcs.put(
+                new Integer(DIALOG_DELETE_GROUP),
+                new DeleteGroupDialogCreatingProc());
 
         mGroupNameView = mInflater.inflate(R.layout.dialog_group_name, null);
     }
@@ -465,6 +514,21 @@ public class MainActivity extends Activity {
         }
     }
 
+    private Dialog createDeleteGroupDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        Resources res = getResources();
+        String fmt = res.getString(R.string.delete_dialog_message);
+        String name = mDeletingGroup.getName();
+        String positive = res.getString(R.string.positive);
+        String negative = res.getString(R.string.negative);
+
+        builder.setMessage(String.format(fmt, name, positive, negative));
+        builder.setPositiveButton(positive, new DialogDeleteGroupListener());
+        builder.setNegativeButton(negative, new DialogCancelListener());
+        return builder.create();
+    }
+
     private Dialog createGroupNameDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setView(mGroupNameView);
@@ -479,6 +543,28 @@ public class MainActivity extends Activity {
 
     private void updateList() {
         mAdapter.notifyDataSetChanged();
+    }
+
+    private void deleteFile(File file) {
+        file.delete();
+        Log.i(LOG_TAG, String.format("deleted: %s", file.getAbsolutePath()));
+    }
+
+    private void deleteDirectory(File directory) {
+        for (File file: directory.listFiles()) {
+            if (file.isDirectory()) {
+                deleteDirectory(file);
+            }
+            deleteFile(file);
+        }
+        deleteFile(directory);
+    }
+
+    private void deleteGroup(Group group) {
+        for (Entry entry: group.getEntries()) {
+            deleteDirectory(new File(entry.getDirectory()));
+        }
+        deleteFile(new File(group.getPath()));
     }
 }
 
