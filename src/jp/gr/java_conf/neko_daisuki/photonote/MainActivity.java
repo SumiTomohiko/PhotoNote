@@ -41,11 +41,7 @@ public class MainActivity extends Activity {
         }
 
         public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
-            View view = mInflater.inflate(R.layout.child_row, parent, false);
-            TextView text = (TextView)view.findViewById(R.id.name);
-            Entry entry = (Entry)getChild(groupPosition, childPosition);
-            text.setText(entry.getName());
-            return view;
+            return isLastChild ? getGroupControlView(groupPosition, childPosition, parent) : getEntryView(groupPosition, childPosition, parent);
         }
 
         public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
@@ -79,18 +75,40 @@ public class MainActivity extends Activity {
         }
 
         public int getChildrenCount(int groupPosition) {
-            return mGroups.get(groupPosition).getEntries().size();
+            return mGroups.get(groupPosition).getEntries().size() + 1;
         }
 
         public int getGroupCount() {
             return mGroups.size();
         }
+
+        private View getEntryView(int groupPosition, int childPosition, ViewGroup parent) {
+            View view = mInflater.inflate(R.layout.child_row, parent, false);
+            TextView text = (TextView)view.findViewById(R.id.name);
+            Entry entry = (Entry)getChild(groupPosition, childPosition);
+            text.setText(entry.getName());
+            return view;
+        }
+
+        private View getGroupControlView(int groupPosition, int childPosition, ViewGroup parent) {
+            View view = mInflater.inflate(R.layout.child_last_row, parent, false);
+            View shotButton = view.findViewById(R.id.shot_button);
+            Group group = (Group)getGroup(groupPosition);
+            shotButton.setOnClickListener(new ShotButtonOnClickListener(group));
+            return view;
+        }
     }
 
     private class ShotButtonOnClickListener implements OnClickListener {
 
+        private Group mGroup;
+
+        public ShotButtonOnClickListener(Group group) {
+            mGroup = group;
+        }
+
         public void onClick(View view) {
-            shot();
+            shot(mGroup);
         }
     }
 
@@ -143,7 +161,11 @@ public class MainActivity extends Activity {
     // view
     private ExpandableListView mList;
 
-    // helpers
+    // stateful helpers
+    private String mShottingGroupName;
+    private Entry mResultEntry;
+
+    // stateless helpers
     private SimpleDateFormat mDateFormat;
     private LayoutInflater mInflater;
 
@@ -152,8 +174,6 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        View shotButton = findViewById(R.id.shot_button);
-        shotButton.setOnClickListener(new ShotButtonOnClickListener());
         mList = (ExpandableListView)findViewById(R.id.list);
 
         setupFileTree();
@@ -213,7 +233,11 @@ public class MainActivity extends Activity {
         super.onResume();
 
         mGroups = readGroups(readEntries());
-        updateView();
+        if (mResultEntry != null) {
+            findGroupOfName(mShottingGroupName).getEntries().add(mResultEntry);
+            mResultEntry = null;
+        }
+        buildView();
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -221,11 +245,11 @@ public class MainActivity extends Activity {
             return;
         }
 
-        Entry entry = new Entry(makeNewEntryName());
-        new File(entry.getDirectory()).mkdir();
+        mResultEntry = new Entry(makeNewEntryName());
+        new File(mResultEntry.getDirectory()).mkdir();
 
         Bitmap bitmap = (Bitmap)data.getExtras().get("data");
-        String path = entry.getOriginalPath();
+        String path = mResultEntry.getOriginalPath();
         OutputStream out;
         try {
             out = new FileOutputStream(path);
@@ -250,8 +274,6 @@ public class MainActivity extends Activity {
         }
 
         Log.i(LOG_TAG, String.format("added %s.", path));
-
-        updateView();
     }
 
     private String getDataDirectory() {
@@ -306,7 +328,9 @@ public class MainActivity extends Activity {
         return group;
     }
 
-    private void shot() {
+    private void shot(Group group) {
+        mShottingGroupName = group.getName();
+
         Intent i = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         startActivityForResult(i, REQUEST_CAPTURE);
     }
@@ -315,9 +339,18 @@ public class MainActivity extends Activity {
         return mDateFormat.format(new Date());
     }
 
-    private void updateView() {
+    private void buildView() {
         ListAdapter adapter = new ListAdapter();
         mList.setAdapter(adapter);
+    }
+
+    private Group findGroupOfName(String name) {
+        for (Group group: mGroups) {
+            if (group.getName().equals(name)) {
+                return group;
+            }
+        }
+        return null;
     }
 }
 
