@@ -22,8 +22,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
-import android.graphics.Bitmap.CompressFormat;
-import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -341,7 +340,8 @@ public class MainActivity extends Activity {
         String[] directories = new String[] {
             getDataDirectory(),
             getEntriesDirectory(),
-            getGroupsDirectory() };
+            getGroupsDirectory(),
+            getTemporaryDirectory() };
         for (String directory: directories) {
             File file = new File(directory);
             if (file.exists()) {
@@ -390,39 +390,27 @@ public class MainActivity extends Activity {
             return;
         }
 
-        mResultEntry = new Entry(makeNewEntryName());
-        new File(mResultEntry.getDirectory()).mkdir();
+        Entry entry = new Entry(makeNewEntryName());
+        new File(entry.getDirectory()).mkdir();
 
-        Bitmap bitmap = (Bitmap)data.getExtras().get("data");
-        String path = mResultEntry.getOriginalPath();
-        OutputStream out;
-        try {
-            out = new FileOutputStream(path);
-        }
-        catch (FileNotFoundException e) {
-            String fmt = "failed to open %s: %s";
-            logError(String.format(fmt, path, e.getMessage()));
-            return;
-        }
-        try {
-            try {
-                bitmap.compress(CompressFormat.PNG, 100, out);
-            }
-            finally {
-                out.close();
-            }
-        }
-        catch (IOException e) {
-            String fmt = "failed to close %s: %s";
-            logError(String.format(fmt, path, e.getMessage()));
+        String src = getTemporaryPath();
+        String dest = entry.getOriginalPath();
+        if (!new File(src).renameTo(new File(dest))) {
+            logError(String.format("failed to move %s into %s.", src, dest));
             return;
         }
 
-        Log.i(LOG_TAG, String.format("added %s.", path));
+        mResultEntry = entry;
+
+        Log.i(LOG_TAG, String.format("added %s.", dest));
     }
 
     private String getDataDirectory() {
         return "/mnt/sdcard/.photonote";
+    }
+
+    private String getTemporaryDirectory() {
+        return String.format("%s/tmp", getDataDirectory());
     }
 
     private String getEntriesDirectory() {
@@ -476,6 +464,8 @@ public class MainActivity extends Activity {
         mShottingGroupName = group.getName();
 
         Intent i = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        Uri uri = Uri.fromFile(new File(getTemporaryPath()));
+        i.putExtra(MediaStore.EXTRA_OUTPUT, uri);
         startActivityForResult(i, REQUEST_CAPTURE);
     }
 
@@ -576,6 +566,10 @@ public class MainActivity extends Activity {
     private void logError(String message) {
         Log.e(LOG_TAG, message);
         showInformation(message);
+    }
+
+    private String getTemporaryPath() {
+        return String.format("%s/original.png", getTemporaryDirectory());
     }
 }
 
