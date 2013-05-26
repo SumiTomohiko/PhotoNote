@@ -254,7 +254,7 @@ public class MainActivity extends Activity {
         }
 
         public String getAdditionalPath() {
-            return getPath("additional.png");
+            return getPath("additional.json");
         }
 
         public String getThumbnailPath() {
