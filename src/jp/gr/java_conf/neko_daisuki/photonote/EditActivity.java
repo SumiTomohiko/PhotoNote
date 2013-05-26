@@ -6,17 +6,25 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
+
+import jp.gr.java_conf.neko_daisuki.photonote.widget.PaintView;
 
 public class EditActivity extends Activity {
 
     public enum Extra {
         ORIGINAL_PATH,
         ADDITIONAL_PATH
-    };
+    }
+
+    private class Adapter extends PaintView.Adapter {
+    }
+
+    private Adapter mAdapter;
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -37,7 +45,10 @@ public class EditActivity extends Activity {
 
         Intent i = getIntent();
         setImage(R.id.original, i, Extra.ORIGINAL_PATH);
-        //setImage(R.id.additional, i, Extra.ADDITIONAL_PATH);
+
+        mAdapter = new Adapter();
+        PaintView view = (PaintView)findViewById(R.id.additional);
+        view.setAdapter(mAdapter);
     }
 
     private void setImage(int view, Intent i, Extra key) {
