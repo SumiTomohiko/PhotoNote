@@ -1,9 +1,12 @@
 package jp.gr.java_conf.neko_daisuki.photonote;
 
 import java.io.File;
+import java.util.LinkedList;
+import java.util.List;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Point;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -21,7 +24,33 @@ public class EditActivity extends Activity {
         ADDITIONAL_PATH
     }
 
-    private class Adapter extends PaintView.Adapter {
+    private class Adapter implements PaintView.Adapter {
+
+        private List<List<Point>> mLines;
+
+        public Adapter() {
+            mLines = new LinkedList<List<Point>>();
+        }
+
+        public int getLineCount() {
+            return mLines.size();
+        }
+
+        public int getPointCount(int line) {
+            return mLines.get(line).size();
+        }
+
+        public Point getPoint(int line, int n) {
+            return mLines.get(line).get(n);
+        }
+
+        public void beginPaint() {
+            mLines.add(new LinkedList<Point>());
+        }
+
+        public void addPoint(Point point) {
+            mLines.get(mLines.size() - 1).add(point);
+        }
     }
 
     private Adapter mAdapter;
