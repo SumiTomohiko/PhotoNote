@@ -22,6 +22,9 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.graphics.Bitmap.CompressFormat;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -40,6 +43,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
+
+    private static class Size {
+
+        public int width;
+        public int height;
+    }
 
     private static class DialogCancelListener implements DialogInterface.OnClickListener {
 
@@ -222,6 +231,10 @@ public class MainActivity extends Activity {
         public String getOriginalPath() {
             return String.format("%s/original.png", getDirectory());
         }
+
+        public String getThumbnailPath() {
+            return String.format("%s/thumbnail.png", getDirectory());
+        }
     }
 
     private class Group {
@@ -251,10 +264,11 @@ public class MainActivity extends Activity {
         SHOTTING_GROUP_NAME
     }
 
-    private static final String LOG_TAG = "photonote";
     private static final int REQUEST_CAPTURE = 42;
     private static final int DIALOG_GROUP_NAME = 42;
     private static final int DIALOG_DELETE_GROUP = 43;
+
+    private static final String LOG_TAG = "photonote";
 
     // document
     private List<Group> mGroups;
@@ -353,6 +367,9 @@ public class MainActivity extends Activity {
         String dest = entry.getOriginalPath();
         if (!new File(src).renameTo(new File(dest))) {
             logError(String.format("failed to move %s into %s.", src, dest));
+            return;
+        }
+        if (!makeThumbnail(entry)) {
             return;
         }
 
@@ -570,6 +587,78 @@ public class MainActivity extends Activity {
 
     private String getTemporaryPath() {
         return String.format("%s/original.png", getTemporaryDirectory());
+    }
+
+    private Size computeThumbnailSize(Bitmap orig) {
+        Size size = new Size();
+
+        int width = orig.getWidth();
+        int height = orig.getHeight();
+        int maxThumbnailWidth = 256;
+        int maxThumbnailHeight = maxThumbnailWidth;
+        if ((width < maxThumbnailWidth) && (height < maxThumbnailHeight)) {
+            size.width = maxThumbnailWidth;
+            size.height = maxThumbnailHeight;
+            return size;
+        }
+
+        if (width < height) {
+            float ratio = (float)maxThumbnailHeight / (float)height;
+            size.width = (int)(ratio * (float)width);
+            size.height = maxThumbnailHeight;
+            return size;
+        }
+
+        float ratio = (float)maxThumbnailWidth / (float)width;
+        size.width = maxThumbnailWidth;
+        size.height = (int)(ratio * (float)height);
+        return size;
+    }
+
+    private boolean makeThumbnail(Entry entry) {
+        String origPath = entry.getOriginalPath();
+        Bitmap orig = BitmapFactory.decodeFile(origPath);
+        if (orig == null) {
+            logError(String.format("failed to decode image: %s", origPath));
+            return false;
+        }
+
+        Size size = computeThumbnailSize(orig);
+        Log.i(LOG_TAG, String.format("thumbnail: width=%d, height=%d", size.width, size.height));
+        Bitmap thumb = Bitmap.createScaledBitmap(
+                orig,
+                size.width, size.height,
+                false);
+
+        String thumbPath = entry.getThumbnailPath();
+        OutputStream out;
+        try {
+            out = new FileOutputStream(thumbPath);
+        }
+        catch (FileNotFoundException e) {
+            String fmt = "failed to open %s: %s";
+            logError(String.format(fmt, thumbPath, e.getMessage()));
+            return false;
+        }
+        try {
+            if (!thumb.compress(CompressFormat.PNG, 100, out)) {
+                String fmt = "failed to make thumbnail: %s";
+                logError(String.format(fmt, thumbPath));
+                return false;
+            }
+        }
+        finally {
+            try {
+                out.close();
+            }
+            catch (IOException e) {
+                String fmt = "failed to close thumbnail %s: %s";
+                logError(String.format(fmt, thumbPath, e.getMessage()));
+                return false;
+            }
+        }
+
+        return true;
     }
 }
 
