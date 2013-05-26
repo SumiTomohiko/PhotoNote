@@ -325,7 +325,7 @@ public class MainActivity extends Activity {
         }
         catch (IOException e) {
             String fmt = "failed to open %s: %s";
-            Log.e(LOG_TAG, String.format(fmt, path, e.getMessage()));
+            logError(String.format(fmt, path, e.getMessage()));
             return;
         }
         if (done) {
@@ -351,7 +351,7 @@ public class MainActivity extends Activity {
                 Log.i(LOG_TAG, String.format("make directory: %s", directory));
                 continue;
             }
-            Log.e(LOG_TAG, String.format("failed to mkdir: %s", directory));
+            logError(String.format("failed to mkdir: %s", directory));
         }
     }
 
@@ -401,7 +401,7 @@ public class MainActivity extends Activity {
         }
         catch (FileNotFoundException e) {
             String fmt = "failed to open %s: %s";
-            Log.e(LOG_TAG, String.format(fmt, path, e.getMessage()));
+            logError(String.format(fmt, path, e.getMessage()));
             return;
         }
         try {
@@ -414,7 +414,7 @@ public class MainActivity extends Activity {
         }
         catch (IOException e) {
             String fmt = "failed to close %s: %s";
-            Log.e(LOG_TAG, String.format(fmt, path, e.getMessage()));
+            logError(String.format(fmt, path, e.getMessage()));
             return;
         }
 
@@ -452,8 +452,7 @@ public class MainActivity extends Activity {
                 groups.add(readGroup(name, entries));
             }
             catch (IOException e) {
-                String fmt = "failed to read a group of %s.";
-                Log.e(LOG_TAG, String.format(fmt, name));
+                logError(String.format("failed to read a group of %s.", name));
             }
         }
 
@@ -502,7 +501,7 @@ public class MainActivity extends Activity {
             }
             catch (FileNotFoundException e) {
                 String fmt = "failed to write %s: %s";
-                Log.e(LOG_TAG, String.format(fmt, path, e.getMessage()));
+                logError(String.format(fmt, path, e.getMessage()));
                 continue;
             }
             PrintWriter writer = new PrintWriter(out);
@@ -572,6 +571,11 @@ public class MainActivity extends Activity {
 
     private void showInformation(String message) {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+    }
+
+    private void logError(String message) {
+        Log.e(LOG_TAG, message);
+        showInformation(message);
     }
 }
 
