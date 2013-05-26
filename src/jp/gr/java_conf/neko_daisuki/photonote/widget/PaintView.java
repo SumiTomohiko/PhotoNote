@@ -2,6 +2,7 @@ package jp.gr.java_conf.neko_daisuki.photonote.widget;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PointF;
@@ -54,7 +55,10 @@ public class PaintView extends View {
 
     protected void onDraw(Canvas canvas) {
         Paint paint = new Paint();
-        paint.setColor(0xff000000);
+        paint.setAntiAlias(true);
+        paint.setColor(Color.BLACK);
+        paint.setStrokeCap(Paint.Cap.ROUND);
+        paint.setStrokeJoin(Paint.Join.ROUND);
         paint.setStrokeWidth(16f);
         paint.setStyle(Paint.Style.STROKE);
 
