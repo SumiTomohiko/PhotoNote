@@ -5,7 +5,7 @@
     <string name="add_a_new_group">Add a new group</string>
     <string name="shot_for_this_group">Shot for this group...</string>
     <string name="delete_this_group">Delete this group</string>
-    <string name="delete_dialog_message">\
+    <string name="delete_dialog_message">
         You are about to delete the group of %1$s. You will lose all entries in
         the group. Are you sure? Are you sure? Are you sure?\n\
         \n\
