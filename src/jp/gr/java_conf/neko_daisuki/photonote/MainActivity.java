@@ -274,6 +274,13 @@ public class MainActivity extends Activity {
     private View mGroupNameView;
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -302,57 +309,6 @@ public class MainActivity extends Activity {
                 new DeleteGroupDialogCreatingProc());
 
         mGroupNameView = mInflater.inflate(R.layout.dialog_group_name, null);
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
-
-    private void setupFileTree() {
-        makeDirectories();
-        makeDefaultGroup();
-    }
-
-    private void makeGroup(CharSequence name) {
-        boolean done;
-        String path = String.format("%s/%s", getGroupsDirectory(), name);
-        try {
-            done = new File(path).createNewFile();
-        }
-        catch (IOException e) {
-            String fmt = "failed to open %s: %s";
-            logError(String.format(fmt, path, e.getMessage()));
-            return;
-        }
-        if (done) {
-            Log.i(LOG_TAG, String.format("created a new group: %s", path));
-        }
-    }
-
-    private void makeDefaultGroup() {
-        makeGroup("default");
-    }
-
-    private void makeDirectories() {
-        String[] directories = new String[] {
-            getDataDirectory(),
-            getEntriesDirectory(),
-            getGroupsDirectory(),
-            getTemporaryDirectory() };
-        for (String directory: directories) {
-            File file = new File(directory);
-            if (file.exists()) {
-                continue;
-            }
-            if (file.mkdir()) {
-                Log.i(LOG_TAG, String.format("make directory: %s", directory));
-                continue;
-            }
-            logError(String.format("failed to mkdir: %s", directory));
-        }
     }
 
     protected Dialog onCreateDialog(int id) {
@@ -403,6 +359,50 @@ public class MainActivity extends Activity {
         mResultEntry = entry;
 
         Log.i(LOG_TAG, String.format("added %s.", dest));
+    }
+
+    private void setupFileTree() {
+        makeDirectories();
+        makeDefaultGroup();
+    }
+
+    private void makeGroup(CharSequence name) {
+        boolean done;
+        String path = String.format("%s/%s", getGroupsDirectory(), name);
+        try {
+            done = new File(path).createNewFile();
+        }
+        catch (IOException e) {
+            String fmt = "failed to open %s: %s";
+            logError(String.format(fmt, path, e.getMessage()));
+            return;
+        }
+        if (done) {
+            Log.i(LOG_TAG, String.format("created a new group: %s", path));
+        }
+    }
+
+    private void makeDefaultGroup() {
+        makeGroup("default");
+    }
+
+    private void makeDirectories() {
+        String[] directories = new String[] {
+            getDataDirectory(),
+            getEntriesDirectory(),
+            getGroupsDirectory(),
+            getTemporaryDirectory() };
+        for (String directory: directories) {
+            File file = new File(directory);
+            if (file.exists()) {
+                continue;
+            }
+            if (file.mkdir()) {
+                Log.i(LOG_TAG, String.format("make directory: %s", directory));
+                continue;
+            }
+            logError(String.format("failed to mkdir: %s", directory));
+        }
     }
 
     private String getDataDirectory() {
