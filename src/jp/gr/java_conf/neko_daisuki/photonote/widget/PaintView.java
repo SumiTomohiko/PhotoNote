@@ -7,21 +7,53 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PointF;
 import android.util.AttributeSet;
+import android.util.SparseArray;
 import android.view.MotionEvent;
 import android.view.View;
 
 public class PaintView extends View {
 
+    private interface MotionEventHandler {
+
+        public void handle(PointF point);
+    }
+
+    private class ActionDownEventHandler implements MotionEventHandler {
+
+        public void handle(PointF point) {
+            mAdapter.startLine(mColor, mStrokeWidth, point);
+        }
+    }
+
+    private class DefaultMotionEventHandler implements MotionEventHandler {
+
+        public void handle(PointF point) {
+            mAdapter.addPoint(point);
+        }
+    }
+
     public interface Adapter {
 
         public int getLineCount();
         public int getPointCount(int line);
+        public int getLineColor(int line);
+        public float getStrokeWidth(int line);
         public PointF getPoint(int line, int n);
-        public void beginPaint();
+        public void startLine(int color, float strokeWidth, PointF point);
         public void addPoint(PointF point);
     }
 
+    // documents
     private Adapter mAdapter;
+
+    // stateful helpers
+    private Paint mPaint;
+    private int mColor;
+    private float mStrokeWidth;
+
+    // stateless helpers
+    private SparseArray<MotionEventHandler> mMotionEventHandlers;
+    private MotionEventHandler mDefaultMotionEventHandler;
 
     public PaintView(Context context) {
         super(context);
@@ -38,36 +70,37 @@ public class PaintView extends View {
         initialize();
     }
 
+    public void setColor(int color) {
+        mColor = color;
+    }
+
+    public void setStrokeWidth(float strokeWidth) {
+        mStrokeWidth = strokeWidth;
+    }
+
     public void setAdapter(Adapter adapter) {
         mAdapter = adapter;
     }
 
     public boolean onTouchEvent(MotionEvent event) {
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            mAdapter.beginPaint();
-            invalidate();
-            return true;
-        }
-        mAdapter.addPoint(new PointF(event.getX(), event.getY()));
+        int action = event.getAction();
+        MotionEventHandler h = mMotionEventHandlers.get(action);
+        MotionEventHandler handler = h != null ? h : mDefaultMotionEventHandler;
+        handler.handle(new PointF(event.getX(), event.getY()));
         invalidate();
         return true;
     }
 
     protected void onDraw(Canvas canvas) {
-        Paint paint = new Paint();
-        paint.setAntiAlias(true);
-        paint.setColor(Color.BLACK);
-        paint.setStrokeCap(Paint.Cap.ROUND);
-        paint.setStrokeJoin(Paint.Join.ROUND);
-        paint.setStrokeWidth(16f);
-        paint.setStyle(Paint.Style.STROKE);
-
         int nLines = mAdapter.getLineCount();
         for (int i = 0; i < nLines; i++) {
             int nPoints = mAdapter.getPointCount(i);
             if (nPoints < 1) {
                 continue;
             }
+
+            mPaint.setColor(mAdapter.getLineColor(i));
+            mPaint.setStrokeWidth(mAdapter.getStrokeWidth(i));
 
             Path path = new Path();
             PointF point = mAdapter.getPoint(i, 0);
@@ -77,13 +110,28 @@ public class PaintView extends View {
                 path.lineTo(point.x, point.y);
             }
 
-            canvas.drawPath(path, paint);
+            canvas.drawPath(path, mPaint);
         }
     }
 
     private void initialize() {
         setFocusable(true);
         setFocusableInTouchMode(true);
+
+        mColor = Color.BLACK;
+        mStrokeWidth = 16f;
+
+        mPaint = new Paint();
+        mPaint.setAntiAlias(true);
+        mPaint.setStrokeCap(Paint.Cap.ROUND);
+        mPaint.setStrokeJoin(Paint.Join.ROUND);
+        mPaint.setStyle(Paint.Style.STROKE);
+
+        mMotionEventHandlers = new SparseArray<MotionEventHandler>();
+        mMotionEventHandlers.put(
+                MotionEvent.ACTION_DOWN,
+                new ActionDownEventHandler());
+        mDefaultMotionEventHandler = new DefaultMotionEventHandler();
     }
 }
 

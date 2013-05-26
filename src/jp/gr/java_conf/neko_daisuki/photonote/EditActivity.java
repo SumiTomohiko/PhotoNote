@@ -24,12 +24,37 @@ public class EditActivity extends Activity {
         ADDITIONAL_PATH
     }
 
+    private static class Line {
+
+        private List<PointF> mPoints;
+        private int mColor;
+        private float mStrokeWidth;
+
+        public Line(int color, float strokeWidth) {
+            mPoints = new LinkedList<PointF>();
+            mColor = color;
+            mStrokeWidth = strokeWidth;
+        }
+
+        public int getColor() {
+            return mColor;
+        }
+
+        public float getStrokeWidth() {
+            return mStrokeWidth;
+        }
+
+        public List<PointF> getPoints() {
+            return mPoints;
+        }
+    }
+
     private class Adapter implements PaintView.Adapter {
 
-        private List<List<PointF>> mLines;
+        private List<Line> mLines;
 
         public Adapter() {
-            mLines = new LinkedList<List<PointF>>();
+            mLines = new LinkedList<Line>();
         }
 
         public int getLineCount() {
@@ -37,19 +62,29 @@ public class EditActivity extends Activity {
         }
 
         public int getPointCount(int line) {
-            return mLines.get(line).size();
+            return mLines.get(line).getPoints().size();
         }
 
         public PointF getPoint(int line, int n) {
-            return mLines.get(line).get(n);
+            return mLines.get(line).getPoints().get(n);
         }
 
-        public void beginPaint() {
-            mLines.add(new LinkedList<PointF>());
+        public void startLine(int color, float strokeWidth, PointF point) {
+            Line line = new Line(color, strokeWidth);
+            line.getPoints().add(point);
+            mLines.add(line);
         }
 
         public void addPoint(PointF point) {
-            mLines.get(mLines.size() - 1).add(point);
+            mLines.get(mLines.size() - 1).getPoints().add(point);
+        }
+
+        public float getStrokeWidth(int line) {
+            return mLines.get(line).getStrokeWidth();
+        }
+
+        public int getLineColor(int line) {
+            return mLines.get(line).getColor();
         }
     }
 
