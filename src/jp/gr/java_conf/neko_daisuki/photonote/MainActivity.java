@@ -403,6 +403,15 @@ public class MainActivity extends Activity {
         if (!makeThumbnail(entry)) {
             return;
         }
+        String path = entry.getAdditionalPath();
+        try {
+            new File(path).createNewFile();
+        }
+        catch (IOException e) {
+            String fmt = "failed to create %s: %s";
+            logError(String.format(fmt, path, e.getMessage()));
+            return;
+        }
 
         mResultEntry = entry;
 
