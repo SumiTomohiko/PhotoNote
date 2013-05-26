@@ -4,7 +4,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.Point;
+import android.graphics.PointF;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
@@ -15,9 +15,9 @@ public class PaintView extends View {
 
         public int getLineCount();
         public int getPointCount(int line);
-        public Point getPoint(int line, int n);
+        public PointF getPoint(int line, int n);
         public void beginPaint();
-        public void addPoint(Point point);
+        public void addPoint(PointF point);
     }
 
     private Adapter mAdapter;
@@ -47,7 +47,7 @@ public class PaintView extends View {
             invalidate();
             return true;
         }
-        mAdapter.addPoint(new Point((int)event.getX(), (int)event.getY()));
+        mAdapter.addPoint(new PointF(event.getX(), event.getY()));
         invalidate();
         return true;
     }
@@ -66,11 +66,11 @@ public class PaintView extends View {
             }
 
             Path path = new Path();
-            Point point = mAdapter.getPoint(i, 0);
-            path.moveTo((float)point.x, (float)point.y);
+            PointF point = mAdapter.getPoint(i, 0);
+            path.moveTo(point.x, point.y);
             for (int j = 1; j < nPoints; j++) {
                 point = mAdapter.getPoint(i, j);
-                path.lineTo((float)point.x, (float)point.y);
+                path.lineTo(point.x, point.y);
             }
 
             canvas.drawPath(path, paint);

@@ -6,7 +6,7 @@ import java.util.List;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.graphics.Point;
+import android.graphics.PointF;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -26,10 +26,10 @@ public class EditActivity extends Activity {
 
     private class Adapter implements PaintView.Adapter {
 
-        private List<List<Point>> mLines;
+        private List<List<PointF>> mLines;
 
         public Adapter() {
-            mLines = new LinkedList<List<Point>>();
+            mLines = new LinkedList<List<PointF>>();
         }
 
         public int getLineCount() {
@@ -40,15 +40,15 @@ public class EditActivity extends Activity {
             return mLines.get(line).size();
         }
 
-        public Point getPoint(int line, int n) {
+        public PointF getPoint(int line, int n) {
             return mLines.get(line).get(n);
         }
 
         public void beginPaint() {
-            mLines.add(new LinkedList<Point>());
+            mLines.add(new LinkedList<PointF>());
         }
 
-        public void addPoint(Point point) {
+        public void addPoint(PointF point) {
             mLines.get(mLines.size() - 1).add(point);
         }
     }
