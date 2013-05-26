@@ -38,6 +38,7 @@ import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
@@ -62,6 +63,8 @@ public class MainActivity extends Activity {
             EditText text = (EditText)mGroupNameView.findViewById(R.id.name);
             CharSequence name = text.getText();
             if (name.length() == 0) {
+                showInformation(
+                        "You gave empty group name. No groups are added.");
                 return;
             }
             makeGroup(name);
@@ -565,6 +568,10 @@ public class MainActivity extends Activity {
             deleteDirectory(new File(entry.getDirectory()));
         }
         deleteFile(new File(group.getPath()));
+    }
+
+    private void showInformation(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }
 }
 
