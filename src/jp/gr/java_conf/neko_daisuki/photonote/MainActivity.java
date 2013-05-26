@@ -157,9 +157,11 @@ public class MainActivity extends Activity {
 
         private View getEntryView(int groupPosition, int childPosition, ViewGroup parent) {
             View view = mInflater.inflate(R.layout.child_row, parent, false);
-            TextView text = (TextView)view.findViewById(R.id.name);
             Entry entry = (Entry)getChild(groupPosition, childPosition);
+            TextView text = (TextView)view.findViewById(R.id.name);
             text.setText(entry.getName());
+            ImageView image = (ImageView)view.findViewById(R.id.thumbnail);
+            image.setImageURI(Uri.fromFile(new File(entry.getThumbnailPath())));
             return view;
         }
 
