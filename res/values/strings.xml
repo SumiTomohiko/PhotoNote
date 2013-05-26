@@ -17,7 +17,6 @@
     <string name="edit">Edit...</string>
     <string name="delete">Delete</string>
     <string name="title_activity_edit">Edit</string>
-    <string name="hello_world">Hello world!</string>
 </resources>
 <!--
 vim: tabstop=4 shiftwidth=4 expandtab softtabstop=4

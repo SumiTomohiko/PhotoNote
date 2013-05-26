@@ -250,11 +250,19 @@ public class MainActivity extends Activity {
         }
 
         public String getOriginalPath() {
-            return String.format("%s/original.png", getDirectory());
+            return getPath("original.png");
+        }
+
+        public String getAdditionalPath() {
+            return getPath("additional.png");
         }
 
         public String getThumbnailPath() {
-            return String.format("%s/thumbnail.png", getDirectory());
+            return getPath("thumbnail.png");
+        }
+
+        private String getPath(String name) {
+            return String.format("%s/%s", getDirectory(), name);
         }
     }
 
@@ -686,6 +694,12 @@ public class MainActivity extends Activity {
 
     private void openEditActivity(Entry entry) {
         Intent i = new Intent(this, EditActivity.class);
+        i.putExtra(
+                EditActivity.Extra.ORIGINAL_PATH.name(),
+                entry.getOriginalPath());
+        i.putExtra(
+                EditActivity.Extra.ADDITIONAL_PATH.name(),
+                entry.getAdditionalPath());
         startActivityForResult(i, REQUEST_EDIT);
     }
 }
