@@ -44,6 +44,19 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
+    private class EditButtonOnClickListener implements OnClickListener {
+
+        private Entry mEntry;
+
+        public EditButtonOnClickListener(Entry entry) {
+            mEntry = entry;
+        }
+
+        public void onClick(View view) {
+            openEditActivity(mEntry);
+        }
+    }
+
     private static class Size {
 
         public int width;
@@ -114,7 +127,9 @@ public class MainActivity extends Activity {
         }
 
         public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
-            return isLastChild ? getGroupControlView(groupPosition, childPosition, parent) : getEntryView(groupPosition, childPosition, parent);
+            return isLastChild
+                ? getGroupControlView(groupPosition, childPosition, parent)
+                : getEntryView(groupPosition, childPosition, parent);
         }
 
         public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
@@ -158,10 +173,14 @@ public class MainActivity extends Activity {
         private View getEntryView(int groupPosition, int childPosition, ViewGroup parent) {
             View view = mInflater.inflate(R.layout.child_row, parent, false);
             Entry entry = (Entry)getChild(groupPosition, childPosition);
+
             TextView text = (TextView)view.findViewById(R.id.name);
             text.setText(entry.getName());
             ImageView image = (ImageView)view.findViewById(R.id.thumbnail);
             image.setImageURI(Uri.fromFile(new File(entry.getThumbnailPath())));
+            Button editButton = (Button)view.findViewById(R.id.edit_button);
+            editButton.setOnClickListener(new EditButtonOnClickListener(entry));
+
             return view;
         }
 
@@ -267,6 +286,8 @@ public class MainActivity extends Activity {
     }
 
     private static final int REQUEST_CAPTURE = 42;
+    private static final int REQUEST_EDIT = 43;
+
     private static final int DIALOG_GROUP_NAME = 42;
     private static final int DIALOG_DELETE_GROUP = 43;
 
@@ -661,6 +682,11 @@ public class MainActivity extends Activity {
         }
 
         return true;
+    }
+
+    private void openEditActivity(Entry entry) {
+        Intent i = new Intent(this, EditActivity.class);
+        startActivityForResult(i, REQUEST_EDIT);
     }
 }
 
