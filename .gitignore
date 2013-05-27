@@ -1,6 +1,7 @@
 .settings
 bin
 gen
+jp.gr.java_conf.neko_daisuki.android.view
 jp.gr.java_conf.neko_daisuki.photonote
 jp.gr.java_conf.neko_daisuki.photonote.widget
 local.properties

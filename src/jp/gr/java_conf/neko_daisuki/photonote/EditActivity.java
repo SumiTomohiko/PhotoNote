@@ -16,12 +16,20 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 
 import jp.gr.java_conf.neko_daisuki.photonote.widget.PaintView;
+import jp.gr.java_conf.neko_daisuki.photonote.widget.PaletteView;
 
 public class EditActivity extends Activity {
 
     public enum Extra {
         ORIGINAL_PATH,
         ADDITIONAL_PATH
+    }
+
+    private class PaletteChangeListener implements PaletteView.OnChangeListener {
+
+        public void onChange(PaletteView view) {
+            mPaintView.setColor(view.getSelectedColor());
+        }
     }
 
     private static class Line {
@@ -88,6 +96,7 @@ public class EditActivity extends Activity {
         }
     }
 
+    private PaintView mPaintView;
     private Adapter mAdapter;
 
     @Override
@@ -111,8 +120,11 @@ public class EditActivity extends Activity {
         setImage(R.id.original, i, Extra.ORIGINAL_PATH);
 
         mAdapter = new Adapter();
-        PaintView view = (PaintView)findViewById(R.id.additional);
-        view.setAdapter(mAdapter);
+        mPaintView = (PaintView)findViewById(R.id.additional);
+        mPaintView.setAdapter(mAdapter);
+
+        PaletteView paletteView = (PaletteView)findViewById(R.id.palette);
+        paletteView.setOnChangeListener(new PaletteChangeListener());
     }
 
     private void setImage(int view, Intent i, Extra key) {

@@ -11,7 +11,32 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
+import jp.gr.java_conf.neko_daisuki.android.view.MotionEventDispatcher;
+
 public class PaletteView extends View {
+
+    public interface OnChangeListener {
+
+        public void onChange(PaletteView view);
+    }
+
+    private static class FakeListener implements OnChangeListener {
+
+        public void onChange(PaletteView view) {
+            // Does nothing.
+        }
+    }
+
+    private class DownProc implements MotionEventDispatcher.Proc {
+
+        public boolean run(MotionEvent event) {
+            int y = (int)event.getY();
+            mSelected = y / mSize;
+            fireListener();
+            invalidate();
+            return true;
+        }
+    }
 
     private static class PaletteColor {
 
@@ -32,13 +57,14 @@ public class PaletteView extends View {
     // document
     private PaletteColor[] mColors;
     private int mSelected;
+    private OnChangeListener mListener;
 
     // drawing data
     private int mBorderWidth = 8;
     private int mSize = 64;
 
     // stateless helpers
-    // TODO
+    private MotionEventDispatcher mMotionDispatcher;
 
     public PaletteView(Context context) {
         super(context);
@@ -55,9 +81,12 @@ public class PaletteView extends View {
         initialize();
     }
 
+    public void setOnChangeListener(OnChangeListener listener) {
+        mListener = listener != null ? listener : new FakeListener();
+    }
+
     public boolean onTouchEvent(MotionEvent event) {
-        // TODO
-        return false;
+        return mMotionDispatcher.dispatch(event);
     }
 
     public int getSelectedColor() {
@@ -128,6 +157,14 @@ public class PaletteView extends View {
             new PaletteColor(Color.WHITE),
             new PaletteColor(Color.YELLOW) };
         mSelected = 0;
+
+        setOnChangeListener(null);
+        mMotionDispatcher = new MotionEventDispatcher();
+        mMotionDispatcher.setDownProc(new DownProc());
+    }
+
+    private void fireListener() {
+        mListener.onChange(this);
     }
 }
 
