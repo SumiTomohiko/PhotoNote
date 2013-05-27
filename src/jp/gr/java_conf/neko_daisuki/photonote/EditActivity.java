@@ -42,7 +42,7 @@ public class EditActivity extends Activity {
     private class OkeyButtonOnClickListener implements View.OnClickListener {
 
         public void onClick(View view) {
-            writeLines();
+            writeLines(mAdditionalPath);
             setResult(RESULT_OK, getIntent());
             finish();
         }
@@ -123,6 +123,10 @@ public class EditActivity extends Activity {
         }
     }
 
+    private enum Key {
+        ADDITIONAL_PATH
+    }
+
     private static final String LOG_TAG = "photonote";
 
     private PaintView mPaintView;
@@ -160,13 +164,25 @@ public class EditActivity extends Activity {
         okeyButton.setOnClickListener(new OkeyButtonOnClickListener());
 
         mAdditionalPath = i.getStringExtra(Extra.ADDITIONAL_PATH.name());
-        /*
-         * TODO: Move calling of readLines() to onResume().
-         * Moreover, data must be stored in a temporary file. onResume() must
-         * read it. Or unsaved data shall be lost. EditActivity can have one
-         * more extra string such as Extra.TEMPORARY_PATH, which is given by
-         * MainActivity.
-         */
+    }
+
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(Key.ADDITIONAL_PATH.name(), mAdditionalPath);
+    }
+
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        mAdditionalPath = savedInstanceState.getString(Key.ADDITIONAL_PATH.name());
+    }
+
+    protected void onPause() {
+        super.onPause();
+        writeLines(mAdditionalPath);
+    }
+
+    protected void onResume() {
+        super.onResume();
         readLines(mAdditionalPath);
     }
 
@@ -200,14 +216,14 @@ public class EditActivity extends Activity {
         writer.endArray();
     }
 
-    private void writeLines() {
+    private void writeLines(String path) {
         OutputStream out;
         try {
-            out = new FileOutputStream(mAdditionalPath);
+            out = new FileOutputStream(path);
         }
         catch (IOException e) {
             String fmt = "failed to open %s: %s";
-            Log.e(LOG_TAG, String.format(fmt, mAdditionalPath, e.getMessage()));
+            Log.e(LOG_TAG, String.format(fmt, path, e.getMessage()));
             return;
         }
         String encoding = "UTF-8";
@@ -218,8 +234,7 @@ public class EditActivity extends Activity {
         catch (UnsupportedEncodingException e) {
             String fmt = "failed to write %s with encoding %s: %s";
             String message = e.getMessage();
-            Log.e(LOG_TAG,
-                    String.format(fmt, mAdditionalPath, encoding, message));
+            Log.e(LOG_TAG, String.format(fmt, path, encoding, message));
             return;
         }
         JsonWriter jsonWriter = new JsonWriter(writer);
@@ -233,7 +248,7 @@ public class EditActivity extends Activity {
         }
         catch (IOException e) {
             String fmt = "failed to write %s: %s";
-            Log.e(LOG_TAG, String.format(fmt, mAdditionalPath, e.getMessage()));
+            Log.e(LOG_TAG, String.format(fmt, path, e.getMessage()));
         }
     }
 

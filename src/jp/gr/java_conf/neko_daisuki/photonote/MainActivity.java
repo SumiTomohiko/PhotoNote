@@ -2,10 +2,12 @@ package jp.gr.java_conf.neko_daisuki.photonote;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
@@ -53,7 +55,7 @@ public class MainActivity extends Activity {
     private class EditResultProc implements ActivityResultProc {
 
         public void run(Intent data) {
-            // TODO
+            mReturnedFromEdit = true;
         }
     }
 
@@ -335,7 +337,8 @@ public class MainActivity extends Activity {
     }
 
     private enum Key {
-        SHOTTING_GROUP_NAME
+        SHOTTING_GROUP_NAME,
+        TARGET_ENTRY_NAME
     }
 
     private static final int REQUEST_CAPTURE = 42;
@@ -354,8 +357,10 @@ public class MainActivity extends Activity {
 
     // stateful helpers
     private String mShottingGroupName;
+    private String mTargetEntryName;
     private Entry mResultEntry;
     private Group mDeletingGroup;
+    private boolean mReturnedFromEdit;
 
     // stateless helpers
     private SimpleDateFormat mDateFormat;
@@ -404,6 +409,8 @@ public class MainActivity extends Activity {
         mActivityResultProcs.put(REQUEST_EDIT, new EditResultProc());
 
         mGroupNameView = mInflater.inflate(R.layout.dialog_group_name, null);
+
+        mReturnedFromEdit = false;
     }
 
     protected Dialog onCreateDialog(int id) {
@@ -413,11 +420,13 @@ public class MainActivity extends Activity {
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putString(Key.SHOTTING_GROUP_NAME.name(), mShottingGroupName);
+        outState.putString(Key.TARGET_ENTRY_NAME.name(), mTargetEntryName);
     }
 
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         mShottingGroupName = savedInstanceState.getString(Key.SHOTTING_GROUP_NAME.name());
+        mTargetEntryName = savedInstanceState.getString(Key.TARGET_ENTRY_NAME.name());
     }
 
     protected void onResume() {
@@ -428,6 +437,18 @@ public class MainActivity extends Activity {
             findGroupOfName(mShottingGroupName).getEntries().add(mResultEntry);
             updateList();
             mResultEntry = null;
+        }
+        if (mReturnedFromEdit) {
+            String src = getTemporaryAdditionalPath();
+            String dest = findEntryOfName(mTargetEntryName).getAdditionalPath();
+            try {
+                copyFile(dest, src);
+            }
+            catch (IOException e) {
+                String fmt = "failed to copy data.json from %s to %s: %s";
+                logError(String.format(fmt, src, dest, e.getMessage()));
+            }
+            mReturnedFromEdit = false;
         }
     }
 
@@ -555,6 +576,17 @@ public class MainActivity extends Activity {
         return mDateFormat.format(new Date());
     }
 
+    private Entry findEntryOfName(String name) {
+        for (Group group: mGroups) {
+            for (Entry entry: group.getEntries()) {
+                if (name.equals(entry.getName())) {
+                    return entry;
+                }
+            }
+        }
+        return null;
+    }
+
     private Group findGroupOfName(String name) {
         for (Group group: mGroups) {
             if (group.getName().equals(name)) {
@@ -650,8 +682,12 @@ public class MainActivity extends Activity {
         showInformation(message);
     }
 
+    private String getTemporaryPath(String name) {
+        return String.format("%s/%s", getTemporaryDirectory(), name);
+    }
+
     private String getTemporaryPath() {
-        return String.format("%s/original.png", getTemporaryDirectory());
+        return getTemporaryPath("original.png");
     }
 
     private Size computeThumbnailSize(Bitmap orig) {
@@ -726,15 +762,51 @@ public class MainActivity extends Activity {
         return true;
     }
 
+    private void copyFile(String dest, String src) throws IOException {
+        OutputStream out = new FileOutputStream(dest);
+        try {
+            InputStream in = new FileInputStream(src);
+            try {
+                byte[] buf = new byte[8192];
+                while (0 < in.available()) {
+                    int len = in.read(buf);
+                    out.write(buf, 0, len);
+                }
+            }
+            finally {
+                in.close();
+            }
+        }
+        finally {
+            out.close();
+        }
+    }
+
     private void openEditActivity(Entry entry) {
+        String additionalPath = entry.getAdditionalPath();
+        String temporaryPath = getTemporaryAdditionalPath();
+        try {
+            copyFile(temporaryPath, additionalPath);
+        }
+        catch (IOException e) {
+            String fmt = "failed to copy from %s to %s: %s";
+            String msg = e.getMessage();
+            logError(String.format(fmt, temporaryPath, additionalPath, msg));
+            return;
+        }
+
+        mTargetEntryName = entry.getName();
+
         Intent i = new Intent(this, EditActivity.class);
         i.putExtra(
                 EditActivity.Extra.ORIGINAL_PATH.name(),
                 entry.getOriginalPath());
-        i.putExtra(
-                EditActivity.Extra.ADDITIONAL_PATH.name(),
-                entry.getAdditionalPath());
+        i.putExtra(EditActivity.Extra.ADDITIONAL_PATH.name(), temporaryPath);
         startActivityForResult(i, REQUEST_EDIT);
+    }
+
+    private String getTemporaryAdditionalPath() {
+        return getTemporaryPath("data.json");
     }
 }
 
