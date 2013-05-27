@@ -10,19 +10,30 @@
         android:id="@+id/brush"
         android:layout_width="wrap_content"
         android:layout_height="fill_parent"/>
-    <FrameLayout
+    <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:layout_weight="1">
-        <ImageView
-            android:id="@+id/original"
+        android:layout_weight="1"
+        android:orientation="vertical">
+        <FrameLayout
             android:layout_width="fill_parent"
-            android:layout_height="fill_parent"/>
-        <jp.gr.java_conf.neko_daisuki.photonote.widget.PaintView
-            android:id="@+id/additional"
+            android:layout_height="fill_parent"
+            android:layout_weight="1">
+            <ImageView
+                android:id="@+id/original"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"/>
+            <jp.gr.java_conf.neko_daisuki.photonote.widget.PaintView
+                android:id="@+id/additional"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"/>
+        </FrameLayout>
+        <Button
+            android:id="@+id/okey_button"
             android:layout_width="fill_parent"
-            android:layout_height="fill_parent"/>
-    </FrameLayout>
+            android:layout_height="wrap_content"
+            android:text="@string/positive"/>
+    </LinearLayout>
 </LinearLayout>
 <!--
 vim: tabstop=4 shiftwidth=4 expandtab softtabstop=4

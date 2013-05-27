@@ -11,8 +11,10 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.ImageView;
 
 import jp.gr.java_conf.neko_daisuki.photonote.widget.PaintView;
@@ -23,6 +25,14 @@ public class EditActivity extends Activity {
     public enum Extra {
         ORIGINAL_PATH,
         ADDITIONAL_PATH
+    }
+
+    private class OkeyButtonOnClickListener implements View.OnClickListener {
+
+        public void onClick(View view) {
+            setResult(RESULT_OK, getIntent());
+            finish();
+        }
     }
 
     private class PaletteChangeListener implements PaletteView.OnChangeListener {
@@ -125,6 +135,9 @@ public class EditActivity extends Activity {
 
         PaletteView paletteView = (PaletteView)findViewById(R.id.palette);
         paletteView.setOnChangeListener(new PaletteChangeListener());
+
+        Button okeyButton = (Button)findViewById(R.id.okey_button);
+        okeyButton.setOnClickListener(new OkeyButtonOnClickListener());
     }
 
     private void setImage(int view, Intent i, Extra key) {
