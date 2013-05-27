@@ -163,6 +163,8 @@ public class EditActivity extends Activity {
     }
 
     private void saveLinesToJson(JsonWriter writer) throws IOException {
+        writer.setIndent("    ");
+
         writer.beginArray();
         int nLines = mAdapter.getLineCount();
         for (int i = 0; i < nLines; i++) {
