@@ -29,6 +29,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View.OnClickListener;
@@ -43,6 +44,50 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
+
+    private interface ActivityResultProc {
+
+        public void run(Intent data);
+    }
+
+    private class EditResultProc implements ActivityResultProc {
+
+        public void run(Intent data) {
+            // TODO
+        }
+    }
+
+    private class CaptureResultProc implements ActivityResultProc {
+
+        public void run(Intent data) {
+            Entry entry = new Entry(makeNewEntryName());
+            new File(entry.getDirectory()).mkdir();
+
+            String src = getTemporaryPath();
+            String dest = entry.getOriginalPath();
+            if (!new File(src).renameTo(new File(dest))) {
+                String fmt = "failed to move %s to %s.";
+                logError(String.format(fmt, src, dest));
+                return;
+            }
+            if (!makeThumbnail(entry)) {
+                return;
+            }
+            String path = entry.getAdditionalPath();
+            try {
+                new File(path).createNewFile();
+            }
+            catch (IOException e) {
+                String fmt = "failed to create %s: %s";
+                logError(String.format(fmt, path, e.getMessage()));
+                return;
+            }
+
+            mResultEntry = entry;
+
+            Log.i(LOG_TAG, String.format("added %s.", dest));
+        }
+    }
 
     private class EditButtonOnClickListener implements OnClickListener {
 
@@ -315,7 +360,8 @@ public class MainActivity extends Activity {
     // stateless helpers
     private SimpleDateFormat mDateFormat;
     private LayoutInflater mInflater;
-    private Map<Integer, DialogCreatingProc> mDialogCreatingProcs;
+    private SparseArray<DialogCreatingProc> mDialogCreatingProcs;
+    private SparseArray<ActivityResultProc> mActivityResultProcs;
     private View mGroupNameView;
 
     @Override
@@ -345,19 +391,23 @@ public class MainActivity extends Activity {
         String service = Context.LAYOUT_INFLATER_SERVICE;
         mInflater = (LayoutInflater)getSystemService(service);
 
-        mDialogCreatingProcs = new HashMap<Integer, DialogCreatingProc>();
+        mDialogCreatingProcs = new SparseArray<DialogCreatingProc>();
         mDialogCreatingProcs.put(
-                new Integer(DIALOG_GROUP_NAME),
+                DIALOG_GROUP_NAME,
                 new GroupNameDialogCreatingProc());
         mDialogCreatingProcs.put(
-                new Integer(DIALOG_DELETE_GROUP),
+                DIALOG_DELETE_GROUP,
                 new DeleteGroupDialogCreatingProc());
+
+        mActivityResultProcs = new SparseArray<ActivityResultProc>();
+        mActivityResultProcs.put(REQUEST_CAPTURE, new CaptureResultProc());
+        mActivityResultProcs.put(REQUEST_EDIT, new EditResultProc());
 
         mGroupNameView = mInflater.inflate(R.layout.dialog_group_name, null);
     }
 
     protected Dialog onCreateDialog(int id) {
-        return mDialogCreatingProcs.get(new Integer(id)).create();
+        return mDialogCreatingProcs.get(id).create();
     }
 
     protected void onSaveInstanceState(Bundle outState) {
@@ -387,35 +437,10 @@ public class MainActivity extends Activity {
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if ((requestCode != REQUEST_CAPTURE) || (resultCode != RESULT_OK)) {
+        if (resultCode != RESULT_OK) {
             return;
         }
-
-        Entry entry = new Entry(makeNewEntryName());
-        new File(entry.getDirectory()).mkdir();
-
-        String src = getTemporaryPath();
-        String dest = entry.getOriginalPath();
-        if (!new File(src).renameTo(new File(dest))) {
-            logError(String.format("failed to move %s into %s.", src, dest));
-            return;
-        }
-        if (!makeThumbnail(entry)) {
-            return;
-        }
-        String path = entry.getAdditionalPath();
-        try {
-            new File(path).createNewFile();
-        }
-        catch (IOException e) {
-            String fmt = "failed to create %s: %s";
-            logError(String.format(fmt, path, e.getMessage()));
-            return;
-        }
-
-        mResultEntry = entry;
-
-        Log.i(LOG_TAG, String.format("added %s.", dest));
+        mActivityResultProcs.get(requestCode).run(data);
     }
 
     private void setupFileTree() {
