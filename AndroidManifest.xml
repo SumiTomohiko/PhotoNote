@@ -4,9 +4,9 @@
     android:versionCode="1"
     android:versionName="1.0">
 
-    <!-- android.provider.MediaStore.ACTION_IMAGE_CAPTURE needs API level 3. -->
+    <!-- android.util.JsonWriter needs API level 11. -->
     <uses-sdk
-        android:minSdkVersion="3"
+        android:minSdkVersion="11"
         android:targetSdkVersion="13"/>
 
     <application
