@@ -28,11 +28,23 @@
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"/>
         </FrameLayout>
-        <Button
-            android:id="@+id/okey_button"
+        <LinearLayout
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:text="@string/positive"/>
+            android:orientation="horizontal">
+            <Button
+                android:id="@+id/okey_button"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/positive"/>
+            <Button
+                android:id="@+id/cancel_button"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/negative"/>
+        </LinearLayout>
     </LinearLayout>
 </LinearLayout>
 <!--

@@ -39,6 +39,14 @@ public class EditActivity extends Activity {
         ADDITIONAL_PATH
     }
 
+    private class CancelButtonOnClickListener implements View.OnClickListener {
+
+        public void onClick(View view) {
+            setResult(RESULT_CANCELED, getIntent());
+            finish();
+        }
+    }
+
     private class OkeyButtonOnClickListener implements View.OnClickListener {
 
         public void onClick(View view) {
@@ -162,6 +170,8 @@ public class EditActivity extends Activity {
 
         Button okeyButton = (Button)findViewById(R.id.okey_button);
         okeyButton.setOnClickListener(new OkeyButtonOnClickListener());
+        Button cancelButton = (Button)findViewById(R.id.cancel_button);
+        cancelButton.setOnClickListener(new CancelButtonOnClickListener());
 
         mAdditionalPath = i.getStringExtra(Extra.ADDITIONAL_PATH.name());
     }
