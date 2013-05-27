@@ -39,6 +39,14 @@ public class EditActivity extends Activity {
         ADDITIONAL_PATH
     }
 
+    private class UndoButtonOnClickListener implements View.OnClickListener {
+
+        public void onClick(View view) {
+            mAdapter.removeLastLine();
+            mPaintView.invalidate();
+        }
+    }
+
     private class CancelButtonOnClickListener implements View.OnClickListener {
 
         public void onClick(View view) {
@@ -129,6 +137,14 @@ public class EditActivity extends Activity {
         public float getLineWidth(int line) {
             return mLines.get(line).getStrokeWidth();
         }
+
+        public void removeLastLine() {
+            int size = mLines.size();
+            if (size == 0) {
+                return;
+            }
+            mLines.remove(size - 1);
+        }
     }
 
     private enum Key {
@@ -170,6 +186,8 @@ public class EditActivity extends Activity {
 
         Button okeyButton = (Button)findViewById(R.id.okey_button);
         okeyButton.setOnClickListener(new OkeyButtonOnClickListener());
+        Button undoButton = (Button)findViewById(R.id.undo_button);
+        undoButton.setOnClickListener(new UndoButtonOnClickListener());
         Button cancelButton = (Button)findViewById(R.id.cancel_button);
         cancelButton.setOnClickListener(new CancelButtonOnClickListener());
 
