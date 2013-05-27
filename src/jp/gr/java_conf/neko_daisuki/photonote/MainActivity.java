@@ -91,16 +91,29 @@ public class MainActivity extends Activity {
         }
     }
 
-    private class EditButtonOnClickListener implements OnClickListener {
+    private abstract class EntryButtonOnClickListener implements OnClickListener {
 
         private Entry mEntry;
 
-        public EditButtonOnClickListener(Entry entry) {
+        public EntryButtonOnClickListener(Entry entry) {
             mEntry = entry;
         }
 
+        public abstract void onClick(View view);
+
+        protected Entry getEntry() {
+            return mEntry;
+        }
+    }
+
+    private class EditButtonOnClickListener extends EntryButtonOnClickListener {
+
+        public EditButtonOnClickListener(Entry entry) {
+            super(entry);
+        }
+
         public void onClick(View view) {
-            openEditActivity(mEntry);
+            openEditActivity(getEntry());
         }
     }
 
@@ -113,6 +126,14 @@ public class MainActivity extends Activity {
     private static class DialogCancelListener implements DialogInterface.OnClickListener {
 
         public void onClick(DialogInterface dialog, int which) {
+        }
+    }
+
+    private class DialogDeleteEntryListener implements DialogInterface.OnClickListener {
+
+        public void onClick(DialogInterface dialog, int which) {
+            deleteEntry(mDeletingEntry);
+            updateList();
         }
     }
 
@@ -144,6 +165,13 @@ public class MainActivity extends Activity {
     private abstract class DialogCreatingProc {
 
         public abstract Dialog create();
+    }
+
+    private class DeleteEntryDialogCreatingProc extends DialogCreatingProc {
+
+        public Dialog create() {
+            return createDeleteEntryDialog();
+        }
     }
 
     private class DeleteGroupDialogCreatingProc extends DialogCreatingProc {
@@ -227,6 +255,9 @@ public class MainActivity extends Activity {
             image.setImageURI(Uri.fromFile(new File(entry.getThumbnailPath())));
             Button editButton = (Button)view.findViewById(R.id.edit_button);
             editButton.setOnClickListener(new EditButtonOnClickListener(entry));
+            Button deleteButton = (Button)view.findViewById(R.id.delete_button);
+            deleteButton.setOnClickListener(
+                    new DeleteEntryButtonOnClickListener(entry));
 
             return view;
         }
@@ -237,7 +268,7 @@ public class MainActivity extends Activity {
             View shotButton = view.findViewById(R.id.shot_button);
             shotButton.setOnClickListener(new ShotButtonOnClickListener(group));
             View deleteButton = view.findViewById(R.id.delete_button);
-            deleteButton.setOnClickListener(new DeleteButtonOnClickListener(group));
+            deleteButton.setOnClickListener(new DeleteGroupOnClickListener(group));
             return view;
         }
     }
@@ -257,9 +288,21 @@ public class MainActivity extends Activity {
         }
     }
 
-    private class DeleteButtonOnClickListener extends GroupButtonOnClickListener {
+    private class DeleteEntryButtonOnClickListener extends EntryButtonOnClickListener {
 
-        public DeleteButtonOnClickListener(Group group) {
+        public DeleteEntryButtonOnClickListener(Entry entry) {
+            super(entry);
+        }
+
+        public void onClick(View view) {
+            mDeletingEntry = getEntry();
+            showDialog(DIALOG_DELETE_ENTRY);
+        }
+    }
+
+    private class DeleteGroupOnClickListener extends GroupButtonOnClickListener {
+
+        public DeleteGroupOnClickListener(Group group) {
             super(group);
         }
 
@@ -346,6 +389,7 @@ public class MainActivity extends Activity {
 
     private static final int DIALOG_GROUP_NAME = 42;
     private static final int DIALOG_DELETE_GROUP = 43;
+    private static final int DIALOG_DELETE_ENTRY = 44;
 
     private static final String LOG_TAG = "photonote";
 
@@ -359,6 +403,7 @@ public class MainActivity extends Activity {
     private String mShottingGroupName;
     private String mTargetEntryName;
     private Entry mResultEntry;
+    private Entry mDeletingEntry;
     private Group mDeletingGroup;
     private boolean mReturnedFromEdit;
 
@@ -403,6 +448,9 @@ public class MainActivity extends Activity {
         mDialogCreatingProcs.put(
                 DIALOG_DELETE_GROUP,
                 new DeleteGroupDialogCreatingProc());
+        mDialogCreatingProcs.put(
+                DIALOG_DELETE_ENTRY,
+                new DeleteEntryDialogCreatingProc());
 
         mActivityResultProcs = new SparseArray<ActivityResultProc>();
         mActivityResultProcs.put(REQUEST_CAPTURE, new CaptureResultProc());
@@ -620,26 +668,43 @@ public class MainActivity extends Activity {
         }
     }
 
-    private Dialog createDeleteGroupDialog() {
+    private Dialog createDeleteDialog(int msgId, String name, DialogInterface.OnClickListener listener) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
         Resources res = getResources();
-        String fmt = res.getString(R.string.delete_dialog_message);
-        String name = mDeletingGroup.getName();
+        String fmt = res.getString(msgId);
         String positive = res.getString(R.string.positive);
         String negative = res.getString(R.string.negative);
 
         builder.setMessage(String.format(fmt, name, positive, negative));
-        builder.setPositiveButton(positive, new DialogDeleteGroupListener());
+        builder.setPositiveButton(positive, listener);
         builder.setNegativeButton(negative, new DialogCancelListener());
+
         return builder.create();
+    }
+
+    private Dialog createDeleteEntryDialog() {
+        int msgId = R.string.delete_entry_dialog_message;
+        String name = mDeletingEntry.getName();
+        return createDeleteDialog(msgId, name, new DialogDeleteEntryListener());
+    }
+
+    private Dialog createDeleteGroupDialog() {
+        int msgId = R.string.delete_group_dialog_message;
+        String name = mDeletingGroup.getName();
+        return createDeleteDialog(msgId, name, new DialogDeleteGroupListener());
     }
 
     private Dialog createGroupNameDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        Resources res = getResources();
+        String positive = res.getString(R.string.positive);
+        String negative = res.getString(R.string.negative);
+
         builder.setView(mGroupNameView);
-        builder.setPositiveButton("Okey", new DialogAddGroupListener());
-        builder.setNegativeButton("Cancel", new DialogCancelListener());
+        builder.setPositiveButton(positive, new DialogAddGroupListener());
+        builder.setNegativeButton(negative, new DialogCancelListener());
         return builder.create();
     }
 
@@ -656,6 +721,10 @@ public class MainActivity extends Activity {
         Log.i(LOG_TAG, String.format("deleted: %s", file.getAbsolutePath()));
     }
 
+    private void deleteDirectory(String directory) {
+        deleteDirectory(new File(directory));
+    }
+
     private void deleteDirectory(File directory) {
         for (File file: directory.listFiles()) {
             if (file.isDirectory()) {
@@ -666,9 +735,25 @@ public class MainActivity extends Activity {
         deleteFile(directory);
     }
 
+    private void deleteEntry(Entry entry) {
+        String name = entry.getName();
+        for (Group group: mGroups) {
+            List<Entry> entries = group.getEntries();
+            int size = entries.size();
+            for (int i = 0; i < size; i++) {
+                if (name.equals(entries.get(i).getName())) {
+                    entries.remove(i);
+                    break;
+                }
+            }
+        }
+
+        deleteDirectory(entry.getDirectory());
+    }
+
     private void deleteGroup(Group group) {
         for (Entry entry: group.getEntries()) {
-            deleteDirectory(new File(entry.getDirectory()));
+            deleteDirectory(entry.getDirectory());
         }
         deleteFile(new File(group.getPath()));
     }
