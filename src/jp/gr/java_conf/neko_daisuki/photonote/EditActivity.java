@@ -1,10 +1,13 @@
 package jp.gr.java_conf.neko_daisuki.photonote;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.util.LinkedList;
@@ -12,9 +15,11 @@ import java.util.List;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.PointF;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.JsonReader;
 import android.util.JsonWriter;
 import android.util.Log;
 import android.view.Menu;
@@ -37,7 +42,7 @@ public class EditActivity extends Activity {
     private class OkeyButtonOnClickListener implements View.OnClickListener {
 
         public void onClick(View view) {
-            saveLines();
+            writeLines();
             setResult(RESULT_OK, getIntent());
             finish();
         }
@@ -155,6 +160,14 @@ public class EditActivity extends Activity {
         okeyButton.setOnClickListener(new OkeyButtonOnClickListener());
 
         mAdditionalPath = i.getStringExtra(Extra.ADDITIONAL_PATH.name());
+        /*
+         * TODO: Move calling of readLines() to onResume().
+         * Moreover, data must be stored in a temporary file. onResume() must
+         * read it. Or unsaved data shall be lost. EditActivity can have one
+         * more extra string such as Extra.TEMPORARY_PATH, which is given by
+         * MainActivity.
+         */
+        readLines(mAdditionalPath);
     }
 
     private void setImage(int view, Intent i, Extra key) {
@@ -162,7 +175,7 @@ public class EditActivity extends Activity {
         v.setImageURI(Uri.fromFile(new File(i.getStringExtra(key.name()))));
     }
 
-    private void saveLinesToJson(JsonWriter writer) throws IOException {
+    private void writeLinesToJson(JsonWriter writer) throws IOException {
         writer.setIndent("    ");
 
         writer.beginArray();
@@ -187,7 +200,7 @@ public class EditActivity extends Activity {
         writer.endArray();
     }
 
-    private void saveLines() {
+    private void writeLines() {
         OutputStream out;
         try {
             out = new FileOutputStream(mAdditionalPath);
@@ -212,7 +225,7 @@ public class EditActivity extends Activity {
         JsonWriter jsonWriter = new JsonWriter(writer);
         try {
             try {
-                saveLinesToJson(jsonWriter);
+                writeLinesToJson(jsonWriter);
             }
             finally {
                 jsonWriter.close();
@@ -220,6 +233,92 @@ public class EditActivity extends Activity {
         }
         catch (IOException e) {
             String fmt = "failed to write %s: %s";
+            Log.e(LOG_TAG, String.format(fmt, mAdditionalPath, e.getMessage()));
+        }
+    }
+
+    private void readLinesFromJson(JsonReader reader) throws IOException {
+        reader.beginArray();
+        while (reader.hasNext()) {
+            int color = Color.BLACK;
+            float width = 16.0f;
+            List<PointF> points = new LinkedList<PointF>();
+
+            reader.beginObject();
+            while (reader.hasNext()) {
+                String name = reader.nextName();
+                if (name.equals("color")) {
+                    color = reader.nextInt();
+                }
+                else if (name.equals("width")) {
+                    width = (float)reader.nextDouble();
+                }
+                else if (name.equals("points")) {
+                    reader.beginArray();
+                    while (reader.hasNext()) {
+                        float x = 0.0f;
+                        float y = 0.0f;
+
+                        reader.beginObject();
+                        while (reader.hasNext()) {
+                            String name2 = reader.nextName();
+                            if (name2.equals("x")) {
+                                x = (float)reader.nextDouble();
+                            }
+                            else if (name2.equals("y")) {
+                                y = (float)reader.nextDouble();
+                            }
+                            else {
+                                String fmt = "unexpected json attribute: %s";
+                                Log.e(LOG_TAG, String.format(fmt, name2));
+                            }
+                        }
+                        reader.endObject();
+
+                        points.add(new PointF(x, y));
+                    }
+                    reader.endArray();
+                }
+                else {
+                    String fmt = "unexpected json attribute: %s";
+                    Log.e(LOG_TAG, String.format(fmt, name));
+                }
+            }
+            reader.endObject();
+
+            int size = points.size();
+            if (size == 0) {
+                continue;
+            }
+            mAdapter.startLine(color, width, points.get(0));
+            for (int i = 1; i < size; i++) {
+                mAdapter.addPoint(points.get(i));
+            }
+        }
+        reader.endArray();
+    }
+
+    private void readLines(String path) {
+        Reader reader;
+        try {
+            reader = new FileReader(path);
+        }
+        catch (FileNotFoundException e) {
+            String fmt = "failed to read %s: %s";
+            Log.e(LOG_TAG, String.format(fmt, path, e.getMessage()));
+            return;
+        }
+        JsonReader jsonReader = new JsonReader(reader);
+        try {
+            try {
+                readLinesFromJson(jsonReader);
+            }
+            finally {
+                jsonReader.close();
+            }
+        }
+        catch (IOException e) {
+            String fmt = "failed to read json %s: %s";
             Log.e(LOG_TAG, String.format(fmt, mAdditionalPath, e.getMessage()));
         }
     }
