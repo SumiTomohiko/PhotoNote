@@ -6,6 +6,9 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Region;
+import android.os.Parcel;
+import android.os.Parcelable.Creator;
+import android.os.Parcelable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -54,6 +57,44 @@ public class PaletteView extends View {
         }
     }
 
+    private static class SavedState extends BaseSavedState {
+
+        private int mSelected;
+
+        public SavedState(Parcel in) {
+            super(in);
+            mSelected = in.readInt();
+        }
+
+        public SavedState(Parcelable superState) {
+            super(superState);
+        }
+
+        public void writeToParcel(Parcel dest, int flags) {
+            super.writeToParcel(dest, flags);
+            dest.writeInt(mSelected);
+        }
+
+        public int getSelected() {
+            return mSelected;
+        }
+
+        public void setSelected(int selected) {
+            mSelected = selected;
+        }
+    }
+
+    public static final Creator CREATOR = new Creator() {
+
+        public SavedState createFromParcel(Parcel source) {
+            return new SavedState(source);
+        }
+
+        public SavedState[] newArray(int size) {
+            return new SavedState[size];
+        }
+    };
+
     // document
     private PaletteColor[] mColors;
     private int mSelected;
@@ -91,6 +132,21 @@ public class PaletteView extends View {
 
     public int getSelectedColor() {
         return mColors[mSelected].color;
+    }
+
+    protected Parcelable onSaveInstanceState() {
+        SavedState state = new SavedState(super.onSaveInstanceState());
+        state.setSelected(mSelected);
+        return state;
+    }
+
+    protected void onRestoreInstanceState(Parcelable state) {
+        if (!(state instanceof SavedState)) {
+            return;
+        }
+        SavedState savedState = (SavedState)state;
+        super.onRestoreInstanceState(savedState.getSuperState());
+        mSelected = savedState.getSelected();
     }
 
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
