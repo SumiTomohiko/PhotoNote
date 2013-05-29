@@ -5,3 +5,7 @@ jp.gr.java_conf.neko_daisuki.android.view
 jp.gr.java_conf.neko_daisuki.photonote
 jp.gr.java_conf.neko_daisuki.photonote.widget
 local.properties
+res/drawable-hdpi/ic_launcher.png
+res/drawable-mdpi/ic_launcher.png
+res/drawable-xdpi/ic_launcher.png
+res/drawable-xxdpi/ic_launcher.png

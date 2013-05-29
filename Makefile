@@ -10,5 +10,7 @@ release:
 clean:
 	@$(CMD) clean
 
+.PHONY: icon
+
 icon:
 	@$(CMD) icon
