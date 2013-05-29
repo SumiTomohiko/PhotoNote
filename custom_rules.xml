@@ -4,11 +4,14 @@
         <attribute name="dpi"/>
         <attribute name="size"/>
         <sequential>
+            <local name="dir"/>
+            <property name="dir" value="res/drawable-@{dpi}dpi"/>
+            <mkdir dir="${dir}"/>
             <exec executable="convert">
                 <arg value="icon/ic_launcher.png"/>
                 <arg value="-thumbnail"/>
                 <arg value="@{size}x"/>
-                <arg value="res/drawable-@{dpi}dpi/ic_launcher.png"/>
+                <arg value="${dir}/ic_launcher.png"/>
             </exec>
         </sequential>
     </macrodef>
