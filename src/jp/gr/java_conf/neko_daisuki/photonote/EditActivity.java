@@ -26,7 +26,6 @@ import android.view.Menu;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.ImageView;
 
 import jp.gr.java_conf.neko_daisuki.photonote.widget.PaintView;
@@ -184,11 +183,11 @@ public class EditActivity extends Activity {
         PaletteView paletteView = (PaletteView)findViewById(R.id.palette);
         paletteView.setOnChangeListener(new PaletteChangeListener());
 
-        Button okeyButton = (Button)findViewById(R.id.okey_button);
+        View okeyButton = findViewById(R.id.okey_button);
         okeyButton.setOnClickListener(new OkeyButtonOnClickListener());
-        Button undoButton = (Button)findViewById(R.id.undo_button);
+        View undoButton = findViewById(R.id.undo_button);
         undoButton.setOnClickListener(new UndoButtonOnClickListener());
-        Button cancelButton = (Button)findViewById(R.id.cancel_button);
+        View cancelButton = findViewById(R.id.cancel_button);
         cancelButton.setOnClickListener(new CancelButtonOnClickListener());
 
         mAdditionalPath = i.getStringExtra(Extra.ADDITIONAL_PATH.name());
