@@ -15,9 +15,10 @@ import java.util.List;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.PointF;
-import android.net.Uri;
 import android.os.Bundle;
 import android.util.JsonReader;
 import android.util.JsonWriter;
@@ -152,15 +153,44 @@ public class EditActivity extends Activity {
 
     private static final String LOG_TAG = "photonote";
 
+    // document
+    private String mOriginalPath;
+    private String mAdditionalPath;
+
+    // view
+    private ImageView mImageView;
     private PaintView mPaintView;
     private Adapter mAdapter;
-    private String mAdditionalPath;
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.edit, menu);
         return true;
+    }
+
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (!hasFocus) {
+            return;
+        }
+
+        int viewWidth = mImageView.getWidth();
+        int viewHeight = mImageView.getHeight();
+
+        Bitmap bm = BitmapFactory.decodeFile(mOriginalPath);
+        int bmWidth = bm.getWidth();
+        int bmHeight = bm.getHeight();
+
+        float ratioWidth = ((float)viewWidth / (float)bmWidth);
+        float ratioHeight = ((float)viewHeight / (float)bmHeight);
+        float ratio = ratioWidth < ratioHeight ? ratioWidth : ratioHeight;
+        int width = (int)(ratio * bmWidth);
+        int height = (int)(ratio * bmHeight);
+
+        Bitmap scaled = Bitmap.createScaledBitmap(bm, width, height, true);
+        bm.recycle();
+        mImageView.setImageBitmap(scaled);
     }
 
     @Override
@@ -173,9 +203,7 @@ public class EditActivity extends Activity {
 
         setContentView(R.layout.activity_edit);
 
-        Intent i = getIntent();
-        setImage(R.id.original, i, Extra.ORIGINAL_PATH);
-
+        mImageView = (ImageView)findViewById(R.id.original);
         mAdapter = new Adapter();
         mPaintView = (PaintView)findViewById(R.id.additional);
         mPaintView.setAdapter(mAdapter);
@@ -190,6 +218,8 @@ public class EditActivity extends Activity {
         View cancelButton = findViewById(R.id.cancel_button);
         cancelButton.setOnClickListener(new CancelButtonOnClickListener());
 
+        Intent i = getIntent();
+        mOriginalPath = i.getStringExtra(Extra.ORIGINAL_PATH.name());
         mAdditionalPath = i.getStringExtra(Extra.ADDITIONAL_PATH.name());
     }
 
@@ -211,11 +241,6 @@ public class EditActivity extends Activity {
     protected void onResume() {
         super.onResume();
         readLines(mAdditionalPath);
-    }
-
-    private void setImage(int view, Intent i, Extra key) {
-        ImageView v = (ImageView)findViewById(view);
-        v.setImageURI(Uri.fromFile(new File(i.getStringExtra(key.name()))));
     }
 
     private void writeLinesToJson(JsonWriter writer) throws IOException {
