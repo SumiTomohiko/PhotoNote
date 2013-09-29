@@ -38,7 +38,6 @@ import android.view.View.OnClickListener;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
@@ -253,9 +252,9 @@ public class MainActivity extends Activity {
             text.setText(entry.getName());
             ImageView image = (ImageView)view.findViewById(R.id.thumbnail);
             image.setImageURI(Uri.fromFile(new File(entry.getThumbnailPath())));
-            Button editButton = (Button)view.findViewById(R.id.edit_button);
+            View editButton = view.findViewById(R.id.edit_button);
             editButton.setOnClickListener(new EditButtonOnClickListener(entry));
-            Button deleteButton = (Button)view.findViewById(R.id.delete_button);
+            View deleteButton = view.findViewById(R.id.delete_button);
             deleteButton.setOnClickListener(
                     new DeleteEntryButtonOnClickListener(entry));
 
@@ -432,7 +431,7 @@ public class MainActivity extends Activity {
         mAdapter = new ListAdapter();
         list.setAdapter(mAdapter);
 
-        Button addGroupButton = (Button)findViewById(R.id.add_a_new_group_button);
+        View addGroupButton = findViewById(R.id.add_a_new_group_button);
         addGroupButton.setOnClickListener(new AddGroupListener());
 
         setupFileTree();
