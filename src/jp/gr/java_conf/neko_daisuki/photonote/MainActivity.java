@@ -814,6 +814,7 @@ public class MainActivity extends Activity {
                 orig,
                 size.width, size.height,
                 false);
+        orig.recycle();
 
         String thumbPath = entry.getThumbnailPath();
         OutputStream out;
