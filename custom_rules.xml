@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project>
+    <import file="svg2drawables.xml"/>
     <macrodef name="convert">
         <attribute name="dpi"/>
         <attribute name="size"/>
@@ -21,6 +22,8 @@
         <convert dpi="h" size="72"/>
         <convert dpi="xh" size="96"/>
         <convert dpi="xxh" size="144"/>
+        <svg2drawables name="ic_delete"/>
+        <svg2drawables name="ic_edit"/>
     </target>
 </project>
 <!--
