@@ -200,13 +200,16 @@ public class MainActivity extends Activity {
             return false;
         }
 
-        public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
+        public View getChildView(int groupPosition, int childPosition,
+                                 boolean isLastChild, View convertView,
+                                 ViewGroup parent) {
             return isLastChild
                 ? getGroupControlView(groupPosition, childPosition, parent)
                 : getEntryView(groupPosition, childPosition, parent);
         }
 
-        public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
+        public View getGroupView(int groupPosition, boolean isExpanded,
+                                 View convertView, ViewGroup parent) {
             View view = mInflater.inflate(R.layout.group_row, parent, false);
             TextView text = (TextView)view.findViewById(R.id.name);
             Group group = (Group)getGroup(groupPosition);
@@ -244,7 +247,8 @@ public class MainActivity extends Activity {
             return mGroups.size();
         }
 
-        private View getEntryView(int groupPosition, int childPosition, ViewGroup parent) {
+        private View getEntryView(int groupPosition, int childPosition,
+                                  ViewGroup parent) {
             View view = mInflater.inflate(R.layout.child_row, parent, false);
             Entry entry = (Entry)getChild(groupPosition, childPosition);
 
@@ -261,8 +265,10 @@ public class MainActivity extends Activity {
             return view;
         }
 
-        private View getGroupControlView(int groupPosition, int childPosition, ViewGroup parent) {
-            View view = mInflater.inflate(R.layout.child_last_row, parent, false);
+        private View getGroupControlView(int groupPosition, int childPosition,
+                                         ViewGroup parent) {
+            int resId = R.layout.child_last_row;
+            View view = mInflater.inflate(resId, parent, false);
             Group group = (Group)getGroup(groupPosition);
             View shotButton = view.findViewById(R.id.shot_button);
             shotButton.setOnClickListener(new ShotButtonOnClickListener(group));
@@ -504,7 +510,8 @@ public class MainActivity extends Activity {
         saveGroups();
     }
 
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode,
+                                    Intent data) {
         if (resultCode != RESULT_OK) {
             return;
         }
@@ -667,7 +674,8 @@ public class MainActivity extends Activity {
         }
     }
 
-    private Dialog createDeleteDialog(int msgId, String name, DialogInterface.OnClickListener listener) {
+    private Dialog createDeleteDialog(
+            int msgId, String name, DialogInterface.OnClickListener listener) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
         Resources res = getResources();
