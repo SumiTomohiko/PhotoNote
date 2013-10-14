@@ -9,13 +9,15 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:text="@string/shot_for_this_group"/>
+        android:text="@string/shot_for_this_group"
+        android:drawableLeft="@drawable/ic_shot"/>
     <Button
         android:id="@+id/delete_button"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:text="@string/delete_this_group"/>
+        android:text="@string/delete_this_group"
+        android:drawableLeft="@drawable/ic_delete"/>
 </LinearLayout>
 <!--
 vim: tabstop=4 shiftwidth=4 expandtab softtabstop=4
