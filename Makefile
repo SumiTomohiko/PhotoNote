@@ -1,7 +1,9 @@
 
 CMD = ant
 
-all:
+all: apk
+
+apk:
 	@$(CMD) debug
 
 release:
