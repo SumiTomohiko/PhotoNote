@@ -9,17 +9,17 @@
         You are about to delete the group of %1$s. You will lose all entries in
         the group. Are you sure? Are you sure? Are you sure?\n\
         \n\
-        If is it okey, please push \&quot;%2$s\&quot;. If it is wrong, push
+        If is it okay, please push \&quot;%2$s\&quot;. If it is wrong, push
         \&quot;%3$s\&quot;.
     </string>
     <string name="delete_entry_dialog_message">
         You are about to delete the entry of %1$s. Are you sure? Are you sure?
         Are you sure?\n\
         \n\
-        If is it okey, please push \&quot;%2$s\&quot;. If it is wrong, push
+        If is it okay, please push \&quot;%2$s\&quot;. If it is wrong, push
         \&quot;%3$s\&quot;.
     </string>
-    <string name="positive">Okey</string>
+    <string name="positive">Okay</string>
     <string name="negative">Cancel</string>
     <string name="edit">Edit...</string>
     <string name="delete">Delete</string>
