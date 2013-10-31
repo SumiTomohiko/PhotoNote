@@ -226,9 +226,10 @@ public class MainActivity extends Activity {
         }
 
         public long getChildId(int groupPosition, int childPosition) {
-            Group group = mGroups.get(groupPosition);
-            Entry entry = group.getEntries().get(childPosition);
-            return entry.getName().hashCode();
+            List<Entry> entries = mGroups.get(groupPosition).getEntries();
+            return childPosition < entries.size()
+                ? entries.get(childPosition).hashCode()
+                : -1;
         }
 
         public Object getChild(int groupPosition, int childPosition) {
@@ -354,6 +355,10 @@ public class MainActivity extends Activity {
 
         public String getThumbnailPath() {
             return getPath("thumbnail.png");
+        }
+
+        public int hashCode() {
+            return getName().hashCode();
         }
 
         private String getPath(String name) {
