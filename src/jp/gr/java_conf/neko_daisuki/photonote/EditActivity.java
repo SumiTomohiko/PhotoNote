@@ -1,6 +1,5 @@
 package jp.gr.java_conf.neko_daisuki.photonote;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
