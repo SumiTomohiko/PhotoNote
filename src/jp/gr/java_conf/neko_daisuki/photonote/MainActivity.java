@@ -133,6 +133,7 @@ public class MainActivity extends Activity {
 
         public void onClick(DialogInterface dialog, int which) {
             deleteEntry(mDeletingEntry);
+            saveGroups();
             updateList();
         }
     }
