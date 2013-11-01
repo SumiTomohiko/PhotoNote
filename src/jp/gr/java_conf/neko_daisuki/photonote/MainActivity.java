@@ -616,9 +616,14 @@ public class MainActivity extends Activity {
 
         String path = String.format("%s/%s", getGroupsDirectory(), name);
         BufferedReader in = new BufferedReader(new FileReader(path));
-        String entryName;
-        while ((entryName = in.readLine()) != null) {
-            group.getEntries().add(entries.get(entryName));
+        try {
+            String entryName;
+            while ((entryName = in.readLine()) != null) {
+                group.getEntries().add(entries.get(entryName));
+            }
+        }
+        finally {
+            in.close();
         }
 
         return group;
