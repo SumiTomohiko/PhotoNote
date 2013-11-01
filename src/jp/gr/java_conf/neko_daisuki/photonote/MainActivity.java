@@ -527,6 +527,21 @@ public class MainActivity extends Activity {
     private void setupFileTree() {
         makeDirectories();
         makeDefaultGroup();
+        touchNoMedia();
+    }
+
+    private void touchNoMedia() {
+        String path = String.format("%s/.nomedia", getDataDirectory());
+        File file = new File(path);
+        try {
+            file.createNewFile();
+        }
+        catch (IOException e) {
+            String fmt = "failed to create .nomedia: %s: %s";
+            logError(String.format(fmt, path, e.getMessage()));
+            return;
+        }
+        Log.i(LOG_TAG, String.format("touched: %s", path));
     }
 
     private void makeGroup(CharSequence name) {
