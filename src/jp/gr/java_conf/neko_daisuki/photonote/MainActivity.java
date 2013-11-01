@@ -29,6 +29,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.util.SparseArray;
@@ -568,7 +569,8 @@ public class MainActivity extends Activity {
     }
 
     private String getDataDirectory() {
-        return "/mnt/sdcard/.photonote";
+        String dir = Environment.getExternalStorageDirectory().getPath();
+        return String.format("%s/.photonote", dir);
     }
 
     private String getTemporaryDirectory() {
