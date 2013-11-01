@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">PhotoNote</string>
-    <string name="action_settings">Settings</string>
     <string name="add_a_new_group">Add a new group</string>
     <string name="shot_for_this_group">Shot for this group...</string>
     <string name="delete_this_group">Delete this group</string>
