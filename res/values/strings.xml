@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name">PhotoNote</string>
     <string name="add_a_new_group">Add a new group</string>
-    <string name="shot_for_this_group">Shot for this group...</string>
+    <string name="shot_for_this_group">Shot for this group&#8230;</string>
     <string name="delete_this_group">Delete this group</string>
     <string name="delete_group_dialog_message">
         You are about to delete the group of %1$s. You will lose all entries in
@@ -20,7 +20,7 @@
     </string>
     <string name="positive">Okay</string>
     <string name="negative">Cancel</string>
-    <string name="edit">Edit...</string>
+    <string name="edit">Edit&#8230;</string>
     <string name="delete">Delete</string>
     <string name="title_activity_edit">Edit</string>
     <string name="undo">Undo</string>
