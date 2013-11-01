@@ -22,7 +22,6 @@ import android.os.Bundle;
 import android.util.JsonReader;
 import android.util.JsonWriter;
 import android.util.Log;
-import android.view.Menu;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -160,13 +159,6 @@ public class EditActivity extends Activity {
     private ImageView mImageView;
     private PaintView mPaintView;
     private Adapter mAdapter;
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.edit, menu);
-        return true;
-    }
 
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
