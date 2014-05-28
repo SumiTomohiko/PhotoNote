@@ -7,8 +7,8 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Region;
 import android.os.Parcel;
-import android.os.Parcelable.Creator;
 import android.os.Parcelable;
+import android.os.Parcelable.Creator;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
@@ -83,7 +83,7 @@ public class PaletteView extends View {
         }
     }
 
-    public static final Creator CREATOR = new Creator() {
+    public static final Creator<SavedState> CREATOR = new Creator<SavedState>() {
 
         public SavedState createFromParcel(Parcel source) {
             return new SavedState(source);
@@ -105,6 +105,8 @@ public class PaletteView extends View {
 
     // stateless helpers
     private MotionEventDispatcher mMotionDispatcher;
+    private Rect mRect = new Rect();
+    private Paint mPaint = new Paint();
 
     public PaletteView(Context context) {
         super(context);
@@ -153,46 +155,44 @@ public class PaletteView extends View {
     }
 
     protected void onDraw(Canvas canvas) {
-        Rect rect = new Rect();
-        rect.left = 0;
-        rect.right = getWidth() - 1;
-        Paint paint = new Paint();
-        paint.setStyle(Paint.Style.FILL);
+        mRect.left = 0;
+        mRect.right = getWidth() - 1;
+        mPaint.setStyle(Paint.Style.FILL);
         for (int i = 0; i < mColors.length; i++) {
-            rect.top = i * mSize;
-            rect.bottom = rect.top + mSize - 1;
-            paint.setColor(mColors[i].color);
-            canvas.drawRect(rect, paint);
+            mRect.top = i * mSize;
+            mRect.bottom = mRect.top + mSize - 1;
+            mPaint.setColor(mColors[i].color);
+            canvas.drawRect(mRect, mPaint);
         }
 
-        rect.top = 0;
-        rect.bottom = getHeight() - 1;
-        paint.setColor(Color.BLACK);
-        paint.setStyle(Paint.Style.STROKE);
-        canvas.drawRect(rect, paint);
+        mRect.top = 0;
+        mRect.bottom = getHeight() - 1;
+        mPaint.setColor(Color.BLACK);
+        mPaint.setStyle(Paint.Style.STROKE);
+        canvas.drawRect(mRect, mPaint);
 
         float x1 = 0;
         float x2 = (float)getWidth();
         for (int i = 1; i < mColors.length; i++) {
             float y = (float)(i * mSize - 1);
-            canvas.drawLine(x1, y, x2, y, paint);
+            canvas.drawLine(x1, y, x2, y, mPaint);
         }
 
-        rect.top = mSelected * mSize;
-        rect.bottom = rect.top + mSize - 1;
-        canvas.clipRect(rect, Region.Op.REPLACE);
-        rect.top += mBorderWidth;
-        rect.right -= mBorderWidth;
-        rect.bottom -= mBorderWidth;
-        rect.left += mBorderWidth;
-        canvas.clipRect(rect, Region.Op.DIFFERENCE);
-        rect.top = mSelected * mSize;
-        rect.right = mSize - 1;
-        rect.bottom = rect.top + mSize - 1;
-        rect.left = 0;
-        paint.setColor(mColors[mSelected].selectedColor);
-        paint.setStyle(Paint.Style.FILL);
-        canvas.drawRect(rect, paint);
+        mRect.top = mSelected * mSize;
+        mRect.bottom = mRect.top + mSize - 1;
+        canvas.clipRect(mRect, Region.Op.REPLACE);
+        mRect.top += mBorderWidth;
+        mRect.right -= mBorderWidth;
+        mRect.bottom -= mBorderWidth;
+        mRect.left += mBorderWidth;
+        canvas.clipRect(mRect, Region.Op.DIFFERENCE);
+        mRect.top = mSelected * mSize;
+        mRect.right = mSize - 1;
+        mRect.bottom = mRect.top + mSize - 1;
+        mRect.left = 0;
+        mPaint.setColor(mColors[mSelected].selectedColor);
+        mPaint.setStyle(Paint.Style.FILL);
+        canvas.drawRect(mRect, mPaint);
     }
 
     private void initialize() {
