@@ -270,28 +270,34 @@ public class EditActivity extends Activity {
             return;
         }
         String encoding = "UTF-8";
-        Writer writer;
         try {
-            writer = new OutputStreamWriter(out, encoding);
-        }
-        catch (UnsupportedEncodingException e) {
-            String fmt = "failed to write %s with encoding %s: %s";
-            String message = e.getMessage();
-            Log.e(LOG_TAG, String.format(fmt, path, encoding, message));
-            return;
-        }
-        JsonWriter jsonWriter = new JsonWriter(writer);
-        try {
+            Writer writer = new OutputStreamWriter(out, encoding);
             try {
-                writeLinesToJson(jsonWriter);
+                JsonWriter jsonWriter = new JsonWriter(writer);
+                try {
+                    try {
+                        writeLinesToJson(jsonWriter);
+                    }
+                    finally {
+                        jsonWriter.close();
+                    }
+                }
+                catch (IOException e) {
+                    String fmt = "failed to write %s: %s";
+                    Log.e(LOG_TAG, String.format(fmt, path, e.getMessage()));
+                }
             }
             finally {
-                jsonWriter.close();
+                writer.close();
             }
         }
+        catch (UnsupportedEncodingException e) {
+            String fmt = "failed to write %s with encoding %s";
+            String msg = String.format(fmt, path, encoding);
+            ActivityUtil.showException(this, msg, e);
+        }
         catch (IOException e) {
-            String fmt = "failed to write %s: %s";
-            Log.e(LOG_TAG, String.format(fmt, path, e.getMessage()));
+            ActivityUtil.showException(this, "I/O error", e);
         }
     }
 
