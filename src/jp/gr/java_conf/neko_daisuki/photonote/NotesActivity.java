@@ -63,16 +63,12 @@ public class NotesActivity extends ActionBarActivity {
                 }
 
                 private String getTemporaryPath(String name) {
-                    return String.format("%s/%s", getTemporaryDirectory(), name);
+                    String parent = Application.getTemporaryDirectory();
+                    return String.format("%s/%s", parent, name);
                 }
 
                 private String getTemporaryAdditionalPath() {
                     return getTemporaryPath("data.json");
-                }
-
-                private String getTemporaryDirectory() {
-                    String directory = Application.getDataDirectory();
-                    return String.format("%s/tmp", directory);
                 }
 
                 private void copyFile(String dest, String src) throws IOException {

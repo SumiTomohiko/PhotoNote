@@ -322,22 +322,10 @@ public class Database {
 
     private void makeDirectories(String directory) {
         String[] directories = new String[] {
-                directory,
-            //getEntriesDirectory(),
-                getGroupsDirectory(directory),
-            //getTemporaryDirectory()
-            };
-        for (String d: directories) {
-            File file = new File(d);
-            if (file.exists()) {
-                continue;
-            }
-            if (file.mkdir()) {
-                Log.i(LOG_TAG, String.format("make directory: %s", directory));
-                continue;
-            }
-            Log.e(LOG_TAG, String.format("failed to mkdir: %s", directory));
-        }
+                getEntriesDirectory(directory),
+                getGroupsDirectory(directory)
+        };
+        FileUtil.makeDirectories(directories);
     }
 
     private void empty() {

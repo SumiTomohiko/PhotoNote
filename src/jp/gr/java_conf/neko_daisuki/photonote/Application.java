@@ -8,4 +8,12 @@ public class Application {
         String storage = Environment.getExternalStorageDirectory().getPath();
         return String.format("%s/.photonote", storage);
     }
+
+    public static String getTemporaryDirectory() {
+        return String.format("%s/tmp", getDataDirectory());
+    }
+
+    public static void initialize() {
+        FileUtil.makeDirectories(new String[] { getTemporaryDirectory() });
+    }
 }

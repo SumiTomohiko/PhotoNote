@@ -63,6 +63,7 @@ public class GroupsActivity extends ActionBarActivity
     public void onResume() {
         super.onResume();
 
+        Application.initialize();
         try {
             mDatabase = Database.open();
         }
