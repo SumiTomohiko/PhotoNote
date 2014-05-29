@@ -35,7 +35,7 @@ public class GroupNameFragment extends DialogFragment {
 
     private OnNameGivenListener mListener;
 
-    public static GroupNameFragment newInstance() {
+    public static DialogFragment newInstance() {
         return new GroupNameFragment();
     }
 
