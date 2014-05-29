@@ -1,5 +1,6 @@
 package jp.gr.java_conf.neko_daisuki.photonote;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -9,6 +10,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarActivity;
@@ -18,6 +20,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -122,11 +125,22 @@ public class NotesActivity extends ActionBarActivity {
             @Override
             public View getView(int position, View convertView,
                                 ViewGroup parent) {
-                TextView view = new TextView(getActivity());
+                View view = convertView != null ? convertView : makeView();
+
                 Database.Note note = mNotes.get(position);
-                view.setOnClickListener(new OnClickListener(note));
-                view.setText(note.getName());
+                ImageView thumbView = (ImageView)view.findViewById(R.id.thumbnail_image);
+                String thumbnailPath = note.getThumbnailPath();
+                thumbView.setImageURI(Uri.fromFile(new File(thumbnailPath)));
+                TextView nameText = (TextView)view.findViewById(R.id.name_text);
+                nameText.setOnClickListener(new OnClickListener(note));
+                nameText.setText(note.getName());
+
                 return view;
+            }
+
+            private View makeView() {
+                LayoutInflater inflater = getActivity().getLayoutInflater();
+                return inflater.inflate(R.layout.row_note, null);
             }
         }
 
