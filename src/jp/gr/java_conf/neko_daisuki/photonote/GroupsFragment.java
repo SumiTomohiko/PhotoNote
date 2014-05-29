@@ -17,19 +17,44 @@ import android.widget.TextView;
 
 public class GroupsFragment extends Fragment {
 
-    public interface OnRequestGroupsListener {
+    public interface GroupsFragmentListener {
 
-        public List<Database.Group> onRequestGroup();
+        public List<Database.Group> onRequestGroup(GroupsFragment fragment);
+        public void onRemoveGroup(GroupsFragment fragment,
+                                  Database.Group.Key group);
     }
 
     private class Adapter extends BaseAdapter {
 
-        private class OnClickListener implements View.OnClickListener {
+        private class GroupListener {
 
             private Database.Group.Key mGroup;
 
-            public OnClickListener(Database.Group.Key group) {
+            public GroupListener(Database.Group.Key group) {
                 mGroup = group;
+            }
+
+            protected Database.Group.Key getGroup() {
+                return mGroup;
+            }
+        }
+
+        private class RemoveButtonListener extends GroupListener implements View.OnClickListener {
+
+            public RemoveButtonListener(Database.Group.Key group) {
+                super(group);
+            }
+
+            @Override
+            public void onClick(View v) {
+                mListener.onRemoveGroup(GroupsFragment.this, getGroup());
+            }
+        }
+
+        private class NameTextListener extends GroupListener implements View.OnClickListener {
+
+            public NameTextListener(Database.Group.Key group) {
+                super(group);
             }
 
             @Override
@@ -37,7 +62,7 @@ public class GroupsFragment extends Fragment {
                 Context context = getActivity();
                 Intent intent = new Intent(context, NotesActivity.class);
                 intent.putExtra(NotesActivity.EXTRA_GROUP,
-                                mGroup.toString());
+                                getGroup().toString());
                 context.startActivity(intent);
             }
         }
@@ -51,7 +76,7 @@ public class GroupsFragment extends Fragment {
         @Override
         public void notifyDataSetChanged() {
             super.notifyDataSetChanged();
-            mGroups = mListener.onRequestGroup();
+            mGroups = mListener.onRequestGroup(GroupsFragment.this);
         }
 
         @Override
@@ -72,15 +97,28 @@ public class GroupsFragment extends Fragment {
         @Override
         public View getView(int position, View convertView,
                             ViewGroup parent) {
+            if (convertView == null) {
+                return getView(position, makeView(position), parent);
+            }
+
             Database.Group group = mGroups.get(position);
-            TextView view = new TextView(getActivity());
-            view.setText(group.getName());
-            view.setOnClickListener(new OnClickListener(group.getKey()));
-            return view;
+            Database.Group.Key key = group.getKey();
+            TextView text = (TextView)convertView.findViewById(R.id.name_text);
+            text.setText(group.getName());
+            text.setOnClickListener(new NameTextListener(key));
+            View button = convertView.findViewById(R.id.remove_button);
+            button.setOnClickListener(new RemoveButtonListener(key));
+
+            return convertView;
+        }
+
+        private View makeView(int position) {
+            LayoutInflater inflater = getActivity().getLayoutInflater();
+            return inflater.inflate(R.layout.row_group, null);
         }
     }
 
-    private OnRequestGroupsListener mListener;
+    private GroupsFragmentListener mListener;
 
     // views
     private BaseAdapter mAdapter;
@@ -88,7 +126,7 @@ public class GroupsFragment extends Fragment {
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        mListener = (OnRequestGroupsListener)activity;
+        mListener = (GroupsFragmentListener)activity;
     }
 
     @Override

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
@@ -13,10 +14,12 @@ import android.view.MenuItem;
 import jp.gr.java_conf.neko_daisuki.android.util.ActivityUtil;
 import jp.gr.java_conf.neko_daisuki.android.util.MenuHandler;
 import jp.gr.java_conf.neko_daisuki.photonote.Database.Group;
+import jp.gr.java_conf.neko_daisuki.photonote.Database.Group.Key;
 
 public class GroupsActivity extends ActionBarActivity
-        implements GroupNameFragment.OnNameGivenListener,
-                   GroupsFragment.OnRequestGroupsListener {
+        implements DeleteGroupFragment.OnDeleteGroupListener,
+                   GroupNameFragment.OnNameGivenListener,
+                   GroupsFragment.GroupsFragmentListener {
 
     private class AddHandler implements MenuHandler.ItemHandler {
 
@@ -81,8 +84,21 @@ public class GroupsActivity extends ActionBarActivity
     }
 
     @Override
-    public List<Group> onRequestGroup() {
+    public List<Group> onRequestGroup(GroupsFragment fragment) {
         return mDatabase.getGroups();
+    }
+
+    @Override
+    public void onDeleteGroup(DeleteGroupFragment fragment, Key group) {
+        mDatabase.removeGroup(group);
+        invalidateViews();
+    }
+
+    @Override
+    public void onRemoveGroup(GroupsFragment fragment, Database.Group.Key group) {
+        Database.Group g = mDatabase.getGroup(group);
+        DialogFragment dialog = DeleteGroupFragment.newInstance(g);
+        dialog.show(getSupportFragmentManager(), "remove group");
     }
 
     @Override

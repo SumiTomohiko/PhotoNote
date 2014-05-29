@@ -162,6 +162,10 @@ public class Database {
             return mGroups.get(key);
         }
 
+        public void remove(Group.Key key) {
+            mGroups.remove(key);
+        }
+
         @Override
         public Iterator<Group> iterator() {
             return mGroups.values().iterator();
@@ -218,6 +222,19 @@ public class Database {
 
     public void addGroup(String name) {
         mGroups.add(new Group(this, name));
+    }
+
+    public Group getGroup(Group.Key key) {
+        return mGroups.get(key);
+    }
+
+    public void removeGroup(Group.Key group) {
+        Group g = getGroup(group);
+        for (Note note: g.getNotes()) {
+            deleteDirectory(note.getDirectory());
+        }
+        deleteFile(new File(getGroupDirectory(Application.getDataDirectory(), g)));
+        mGroups.remove(group);
     }
 
     public List<Note> getNotes(Group.Key group) {
@@ -340,5 +357,24 @@ public class Database {
         }
 
         initialize(groups, notes);
+    }
+
+    private void deleteDirectory(String directory) {
+        deleteDirectory(new File(directory));
+    }
+
+    private void deleteDirectory(File directory) {
+        for (File file: directory.listFiles()) {
+            if (file.isDirectory()) {
+                deleteDirectory(file);
+            }
+            deleteFile(file);
+        }
+        deleteFile(directory);
+    }
+
+    private void deleteFile(File file) {
+        file.delete();
+        Log.i(LOG_TAG, String.format("deleted: %s", file.getAbsolutePath()));
     }
 }
