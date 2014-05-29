@@ -216,6 +216,10 @@ public class Database {
         return database;
     }
 
+    public void addGroup(String name) {
+        mGroups.add(new Group(this, name));
+    }
+
     public List<Note> getNotes(Group.Key group) {
         List<Note> l = new ArrayList<Note>();
         for (Note e: mGroups.get(group).getNotes()) {

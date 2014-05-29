@@ -27,6 +27,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
 
+import jp.gr.java_conf.neko_daisuki.android.util.ActivityUtil;
 import jp.gr.java_conf.neko_daisuki.photonote.widget.PaintView;
 import jp.gr.java_conf.neko_daisuki.photonote.widget.PaletteView;
 

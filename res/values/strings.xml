@@ -24,4 +24,7 @@
     <string name="delete">Delete</string>
     <string name="title_activity_edit">Edit</string>
     <string name="undo">Undo</string>
+
+    <string name="action_add_group">Add a new group&#8230;</string>
+    <string name="action_add_note">Add a new note&#8230;</string>
 </resources>

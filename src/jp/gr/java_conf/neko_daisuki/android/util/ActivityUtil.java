@@ -1,4 +1,4 @@
-package jp.gr.java_conf.neko_daisuki.photonote;
+package jp.gr.java_conf.neko_daisuki.android.util;
 
 import android.app.Activity;
 import android.util.Log;
