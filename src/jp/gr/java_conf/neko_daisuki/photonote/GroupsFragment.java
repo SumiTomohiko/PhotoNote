@@ -97,22 +97,20 @@ public class GroupsFragment extends Fragment {
         @Override
         public View getView(int position, View convertView,
                             ViewGroup parent) {
-            if (convertView == null) {
-                return getView(position, makeView(position), parent);
-            }
+            View view = convertView != null ? convertView : makeView();
 
             Database.Group group = mGroups.get(position);
             Database.Group.Key key = group.getKey();
-            TextView text = (TextView)convertView.findViewById(R.id.name_text);
+            TextView text = (TextView)view.findViewById(R.id.name_text);
             text.setText(group.getName());
             text.setOnClickListener(new NameTextListener(key));
-            View button = convertView.findViewById(R.id.remove_button);
+            View button = view.findViewById(R.id.remove_button);
             button.setOnClickListener(new RemoveButtonListener(key));
 
-            return convertView;
+            return view;
         }
 
-        private View makeView(int position) {
+        private View makeView() {
             LayoutInflater inflater = getActivity().getLayoutInflater();
             return inflater.inflate(R.layout.row_group, null);
         }
