@@ -25,9 +25,24 @@ public class NotesFragment extends Fragment {
         public List<Database.Note> onRequestNotes(NotesFragment fragment,
                                                   Database.Group.Key group);
         public void onEditNote(NotesFragment fragment, Database.Note.Key note);
+        public void onRemoveNote(NotesFragment fragment, Database.Note note);
     }
 
     private class Adapter extends BaseAdapter {
+
+        private class RemoveButtonOnClickListener implements View.OnClickListener {
+
+            private Database.Note mNote;
+
+            public RemoveButtonOnClickListener(Database.Note note) {
+                mNote = note;
+            }
+
+            @Override
+            public void onClick(View v) {
+                mListener.onRemoveNote(NotesFragment.this, mNote);
+            }
+        }
 
         private class EditButtonOnClickListener implements View.OnClickListener {
 
@@ -84,6 +99,8 @@ public class NotesFragment extends Fragment {
             View editButton = view.findViewById(R.id.edit_button);
             Note.Key key = note.getKey();
             editButton.setOnClickListener(new EditButtonOnClickListener(key));
+            View removeButton = view.findViewById(R.id.delete_button);
+            removeButton.setOnClickListener(new RemoveButtonOnClickListener(note));
 
             return view;
         }

@@ -138,6 +138,10 @@ public class Database {
             return mKey.toString();
         }
 
+        public void removeNote(Note.Key note) {
+            mNotes.remove(note);
+        }
+
         public Collection<Note> getNotes() {
             Collection<Note> c = new ArrayList<Note>();
             for (Note.Key e: mNotes) {
@@ -160,6 +164,10 @@ public class Database {
 
         public Note get(Note.Key key) {
             return mNotes.get(key);
+        }
+
+        public void remove(Note.Key note) {
+            mNotes.remove(note);
         }
 
         @Override
@@ -257,6 +265,13 @@ public class Database {
 
     public Group getGroup(Group.Key key) {
         return mGroups.get(key);
+    }
+
+    public void removeNote(Note.Key note) {
+        for (Group group: mGroups) {
+            group.removeNote(note);
+        }
+        mNotes.remove(note);
     }
 
     public void removeGroup(Group.Key group) {

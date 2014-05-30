@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBarActivity;
@@ -25,7 +26,8 @@ import jp.gr.java_conf.neko_daisuki.android.util.MenuHandler;
 import jp.gr.java_conf.neko_daisuki.photonote.Database.Note;
 
 public class NotesActivity extends ActionBarActivity
-        implements NotesFragment.NotesFragmentListener {
+        implements NotesFragment.NotesFragmentListener,
+                   RemoveNoteFragment.RemoveNoteFragmentListener {
 
     private class AddHandler implements MenuHandler.ItemHandler {
 
@@ -135,6 +137,12 @@ public class NotesActivity extends ActionBarActivity
     }
 
     @Override
+    public void onRemoveNote(NotesFragment fragment, Database.Note note) {
+        DialogFragment dialog = RemoveNoteFragment.newInstance(note);
+        dialog.show(getSupportFragmentManager(), "remove_note");
+    }
+
+    @Override
     public List<Note> onRequestNotes(NotesFragment fragment,
                                      Database.Group.Key group) {
         return mDatabase.getNotes(group);
@@ -163,6 +171,13 @@ public class NotesActivity extends ActionBarActivity
                    n.getOriginalPath());
         i.putExtra(EditActivity.Extra.ADDITIONAL_PATH.name(), temporaryPath);
         startActivityForResult(i, REQUEST_EDIT);
+    }
+
+    @Override
+    public void onRemoveNote(RemoveNoteFragment fragment,
+                             Database.Note.Key note) {
+        mDatabase.removeNote(note);
+        invalidateViews();
     }
 
     @Override
