@@ -1,7 +1,11 @@
 package jp.gr.java_conf.neko_daisuki.photonote;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 
 import android.content.Intent;
@@ -48,6 +52,34 @@ public class NotesActivity extends ActionBarActivity
         public void onResumed();
     }
 
+    private class EditResultHandler
+            implements ActivityResultHandler.ResultHandler {
+
+        private class Proc implements OnResumedHandler {
+
+            @Override
+            public void onResumed() {
+                String src = getTemporaryAdditionalPath();
+                Database.Note note = mDatabase.getNote(mTargetNote);
+                String dest = note.getAdditionalPath();
+                try {
+                    copyFile(dest, src);
+                }
+                catch (IOException e) {
+                    String fmt = "failed to copy data.json from %s to %s";
+                    String msg = String.format(fmt, src, dest);
+                    ActivityUtil.showException(NotesActivity.this, msg, e);
+                }
+            }
+        }
+
+        @Override
+        public void onActivityResult(int requestCode, int resultCode,
+                                     Intent data) {
+            mOnResumedHandler = new Proc();
+        }
+    }
+
     private class AddResultHandler
             implements ActivityResultHandler.ResultHandler {
 
@@ -83,6 +115,8 @@ public class NotesActivity extends ActionBarActivity
     private Database mDatabase;
     private Database.Group.Key mGroup;
 
+    private Database.Note.Key mTargetNote;
+
     // helpers
     private MenuHandler mMenuHandler = new MenuHandler();
     private ActivityResultHandler mActivityResultHandler;
@@ -104,6 +138,31 @@ public class NotesActivity extends ActionBarActivity
     public List<Note> onRequestNotes(NotesFragment fragment,
                                      Database.Group.Key group) {
         return mDatabase.getNotes(group);
+    }
+
+    @Override
+    public void onEditNote(NotesFragment fragment, Database.Note.Key note) {
+        Database.Note n = mDatabase.getNote(note);
+
+        String additionalPath = n.getAdditionalPath();
+        String temporaryPath = getTemporaryAdditionalPath();
+        try {
+            copyFile(temporaryPath, additionalPath);
+        }
+        catch (IOException e) {
+            String fmt = "failed to copy from %s to %s";
+            String msg = String.format(fmt, temporaryPath, additionalPath);
+            ActivityUtil.showException(this, msg, e);
+            return;
+        }
+
+        mTargetNote = n.getKey();
+
+        Intent i = new Intent(this, EditActivity.class);
+        i.putExtra(EditActivity.Extra.ORIGINAL_PATH.name(),
+                   n.getOriginalPath());
+        i.putExtra(EditActivity.Extra.ADDITIONAL_PATH.name(), temporaryPath);
+        startActivityForResult(i, REQUEST_EDIT);
     }
 
     @Override
@@ -141,6 +200,7 @@ public class NotesActivity extends ActionBarActivity
         mMenuHandler.put(R.id.action_add_note, new AddHandler());
         mActivityResultHandler = new ActivityResultHandler();
         mActivityResultHandler.put(REQUEST_ADD, new AddResultHandler());
+        mActivityResultHandler.put(REQUEST_EDIT, new EditResultHandler());
 
         if (savedInstanceState == null) {
             Bundle args = new Bundle();
@@ -158,6 +218,22 @@ public class NotesActivity extends ActionBarActivity
         mActivityResultHandler.handle(requestCode, resultCode, data);
     }
 
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        String key = mTargetNote != null ? mTargetNote.toString() : null;
+        outState.putString("note", key);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+
+        String key = savedInstanceState.getString("note");
+        mTargetNote = key != null ? new Database.Note.Key(key) : null;
+    }
+
     private void invalidateViews() {
         FragmentManager manager = getSupportFragmentManager();
         int id = R.id.container;
@@ -168,5 +244,34 @@ public class NotesActivity extends ActionBarActivity
     private String getTemporaryPath() {
         String directory = Application.getTemporaryDirectory();
         return String.format("%s/original.png", directory);
+    }
+
+    private String getTemporaryPath(String name) {
+        String parent = Application.getTemporaryDirectory();
+        return String.format("%s/%s", parent, name);
+    }
+
+    private String getTemporaryAdditionalPath() {
+        return getTemporaryPath("data.json");
+    }
+
+    private void copyFile(String dest, String src) throws IOException {
+        OutputStream out = new FileOutputStream(dest);
+        try {
+            InputStream in = new FileInputStream(src);
+            try {
+                byte[] buf = new byte[8192];
+                while (0 < in.available()) {
+                    int len = in.read(buf);
+                    out.write(buf, 0, len);
+                }
+            }
+            finally {
+                in.close();
+            }
+        }
+        finally {
+            out.close();
+        }
     }
 }

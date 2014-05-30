@@ -251,6 +251,10 @@ public class Database {
         mGroups.add(new Group(this, name));
     }
 
+    public Note getNote(Note.Key key) {
+        return mNotes.get(key);
+    }
+
     public Group getGroup(Group.Key key) {
         return mGroups.get(key);
     }
