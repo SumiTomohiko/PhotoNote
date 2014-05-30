@@ -8,15 +8,22 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.Reader;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
+import android.graphics.Bitmap;
+import android.graphics.Bitmap.CompressFormat;
+import android.graphics.BitmapFactory;
 import android.util.Log;
 
 public class Database {
@@ -25,8 +32,14 @@ public class Database {
 
         public static class Key extends BaseKey {
 
+            private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ROOT);
+
             public Key(String key) {
                 super(key);
+            }
+
+            public Key() {
+                this(DATE_FORMAT.format(new Date()));
             }
         }
 
@@ -43,7 +56,15 @@ public class Database {
         private Key mKey;
 
         private Note(String name) {
-            mKey = new Key(name);
+            this(new Key(name));
+        }
+
+        private Note() {
+            this(new Key());
+        }
+
+        private Note(Key key) {
+            mKey = key;
         }
 
         public Key getKey() {
@@ -203,6 +224,12 @@ public class Database {
         }
     }
 
+    private static class Size {
+
+        public int width;
+        public int height;
+    }
+
     private static final String LOG_TAG = "database";
 
     private Groups mGroups;
@@ -235,6 +262,24 @@ public class Database {
         }
         deleteFile(new File(getGroupDirectory(Application.getDataDirectory(), g)));
         mGroups.remove(group);
+    }
+
+    public Note addNote(Group.Key group, String imagePath) throws IOException {
+        Note note = new Note();
+
+        new File(note.getDirectory()).mkdir();
+        String dest = note.getOriginalPath();
+        if (!new File(imagePath).renameTo(new File(dest))) {
+            String fmt = "failed to move %s to %s.";
+            throw new IOException(String.format(fmt, imagePath, dest));
+        }
+        makeThumbnail(note);
+        new File(note.getAdditionalPath()).createNewFile();
+
+        mNotes.add(note);
+        mGroups.get(group).addNote(note.getKey());
+
+        return note;
     }
 
     public List<Note> getNotes(Group.Key group) {
@@ -276,6 +321,66 @@ public class Database {
             finally {
                 out.close();
             }
+        }
+    }
+
+    private Size computeThumbnailSize(Bitmap orig) {
+        Size size = new Size();
+
+        int width = orig.getWidth();
+        int height = orig.getHeight();
+        int maxThumbnailWidth = 256;
+        int maxThumbnailHeight = maxThumbnailWidth;
+        if ((width < maxThumbnailWidth) && (height < maxThumbnailHeight)) {
+            size.width = maxThumbnailWidth;
+            size.height = maxThumbnailHeight;
+            return size;
+        }
+
+        if (width < height) {
+            float ratio = (float)maxThumbnailHeight / (float)height;
+            size.width = (int)(ratio * (float)width);
+            size.height = maxThumbnailHeight;
+            return size;
+        }
+
+        float ratio = (float)maxThumbnailWidth / (float)width;
+        size.width = maxThumbnailWidth;
+        size.height = (int)(ratio * (float)height);
+        return size;
+    }
+
+    private void makeThumbnail(Note note) throws IOException {
+        String origPath = note.getOriginalPath();
+        Bitmap orig = BitmapFactory.decodeFile(origPath);
+        if (orig == null) {
+            String fmt = "failed to decode image: %s";
+            throw new IOException(String.format(fmt, origPath));
+        }
+        try {
+            Size size = computeThumbnailSize(orig);
+            Bitmap thumb = Bitmap.createScaledBitmap(orig,
+                                                     size.width, size.height,
+                                                     false);
+            try {
+                String thumbPath = note.getThumbnailPath();
+                OutputStream out = new FileOutputStream(thumbPath);
+                try {
+                    if (!thumb.compress(CompressFormat.PNG, 100, out)) {
+                        String fmt = "failed to make thumbnail: %s";
+                        throw new IOException(String.format(fmt, thumbPath));
+                    }
+                }
+                finally {
+                    out.close();
+                }
+            }
+            finally {
+                thumb.recycle();
+            }
+        }
+        finally {
+            orig.recycle();
         }
     }
 
