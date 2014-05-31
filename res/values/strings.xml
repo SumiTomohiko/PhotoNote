@@ -17,6 +17,9 @@
         If is it okay, please push \&quot;%2$s\&quot;. If it is wrong, push
         \&quot;%3$s\&quot;.
     </string>
+    <string name="message_give_name_of_the_new_group">
+        Give a name of the new group.
+    </string>
 
     <string name="positive">Okay</string>
     <string name="negative">Cancel</string>
