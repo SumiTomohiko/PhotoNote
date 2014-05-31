@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">PhotoNote 2</string>
-    <string name="add_a_new_group">Add a new group</string>
-    <string name="shot_for_this_group">Shot for this group&#8230;</string>
-    <string name="delete_this_group">Delete this group</string>
+    <string name="title_activity_edit">Edit</string>
+
     <string name="delete_group_dialog_message">
         You are about to delete the group of %1$s. You will lose all entries in
         the group. Are you sure? Are you sure? Are you sure?\n\
@@ -18,11 +17,11 @@
         If is it okay, please push \&quot;%2$s\&quot;. If it is wrong, push
         \&quot;%3$s\&quot;.
     </string>
+
     <string name="positive">Okay</string>
     <string name="negative">Cancel</string>
     <string name="edit">Edit&#8230;</string>
     <string name="delete">Delete</string>
-    <string name="title_activity_edit">Edit</string>
     <string name="undo">Undo</string>
 
     <string name="action_add_group">Add a new group&#8230;</string>
