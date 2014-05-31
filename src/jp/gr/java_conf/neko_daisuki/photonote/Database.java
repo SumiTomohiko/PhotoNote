@@ -243,13 +243,8 @@ public class Database {
     private Groups mGroups;
     private Notes mNotes;
 
-    public static Database newInstance() {
-        Database database = new Database();
-        database.empty();
-        return database;
-    }
-
     public static Database open() throws IOException {
+        Database.makeDirectories();
         Database database = new Database();
         database.read();
         return database;
@@ -321,7 +316,6 @@ public class Database {
 
     public void write() throws IOException {
         String directory = Application.getDataDirectory();
-        makeDirectories(directory);
 
         for (Group group: mGroups) {
             String path = getGroupDirectory(directory, group);
@@ -439,12 +433,8 @@ public class Database {
         return group;
     }
 
-    private void initialize(Groups groups, Notes notes) {
-        mGroups = groups;
-        mNotes = notes;
-    }
-
-    private void makeDirectories(String directory) {
+    private static void makeDirectories() {
+        String directory = Application.getDataDirectory();
         String[] directories = new String[] {
                 getEntriesDirectory(directory),
                 getGroupsDirectory(directory)
@@ -452,23 +442,17 @@ public class Database {
         FileUtil.makeDirectories(directories);
     }
 
-    private void empty() {
-        initialize(new Groups(), new Notes());
-    }
-
     private void read() throws IOException {
         String directory = Application.getDataDirectory();
 
-        Notes notes = new Notes();
+        mNotes = new Notes();
         for (String name: new File(getEntriesDirectory(directory)).list()) {
-            notes.add(new Note(name));
+            mNotes.add(new Note(name));
         }
-        Groups groups = new Groups();
+        mGroups = new Groups();
         for (File file: new File(getGroupsDirectory(directory)).listFiles()) {
-            groups.add(readGroup(directory, file.getName()));
+            mGroups.add(readGroup(directory, file.getName()));
         }
-
-        initialize(groups, notes);
     }
 
     private void deleteDirectory(String directory) {

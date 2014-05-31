@@ -66,11 +66,11 @@ public class GroupsActivity extends ActionBarActivity
         Application.initialize();
         try {
             mDatabase = Database.open();
+            invalidateViews();
         }
         catch (IOException e) {
-            mDatabase = Database.newInstance();
+            ActivityUtil.showException(this, "Cannot open the database", e);
         }
-        invalidateViews();
     }
 
     @Override
