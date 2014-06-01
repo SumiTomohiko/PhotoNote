@@ -11,6 +11,7 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -42,32 +43,6 @@ public class NotesFragment extends Fragment {
             }
         }
 
-        private class ThumbnailOnClickListener implements View.OnClickListener {
-
-            private Database.Note.Key mNote;
-
-            public ThumbnailOnClickListener(Database.Note.Key note) {
-                mNote = note;
-            }
-
-            @Override
-            public void onClick(View v) {
-                mListener.onEditNote(NotesFragment.this, mNote);
-            }
-        }
-
-        private List<Database.Note> mNotes;
-
-        public Adapter() {
-            mNotes = new LinkedList<Database.Note>();
-        }
-
-        @Override
-        public void notifyDataSetChanged() {
-            super.notifyDataSetChanged();
-            mNotes = mListener.onRequestNotes(NotesFragment.this, mGroup);
-        }
-
         @Override
         public int getCount() {
             return mNotes.size();
@@ -90,8 +65,6 @@ public class NotesFragment extends Fragment {
 
             Database.Note note = mNotes.get(position);
             ImageView thumbView = (ImageView)view.findViewById(R.id.thumbnail_image);
-            Database.Note.Key key = note.getKey();
-            thumbView.setOnClickListener(new ThumbnailOnClickListener(key));
             String thumbnailPath = note.getThumbnailPath();
             thumbView.setImageURI(Uri.fromFile(new File(thumbnailPath)));
             TextView nameText = (TextView)view.findViewById(R.id.name_text);
@@ -108,8 +81,19 @@ public class NotesFragment extends Fragment {
         }
     }
 
+    private class OnItemClickListener implements AdapterView.OnItemClickListener {
+
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position,
+                                long id) {
+            Database.Note note = mNotes.get(position);
+            mListener.onEditNote(NotesFragment.this, note.getKey());
+        }
+    }
+
     // documents
     private Database.Group.Key mGroup;
+    private List<Database.Note> mNotes = new LinkedList<Database.Note>();
 
     // views
     private BaseAdapter mAdapter;
@@ -135,12 +119,14 @@ public class NotesFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_notes, container,
                                          false);
         ListView list = (ListView)rootView;
+        list.setOnItemClickListener(new OnItemClickListener());
         mAdapter = new Adapter();
         list.setAdapter(mAdapter);
         return rootView;
     }
 
     public void invalidateViews() {
+        mNotes = mListener.onRequestNotes(NotesFragment.this, mGroup);
         mAdapter.notifyDataSetChanged();
     }
 }
