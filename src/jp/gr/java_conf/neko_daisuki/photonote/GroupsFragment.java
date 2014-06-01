@@ -133,7 +133,7 @@ public class GroupsFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_groups,
                                          container, false);
 
-        ListView list = (ListView)rootView.findViewById(R.id.groups_list);
+        ListView list = (ListView)rootView;
         mAdapter = new Adapter();
         list.setAdapter(mAdapter);
 

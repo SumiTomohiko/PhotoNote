@@ -13,23 +13,10 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:layout_gravity="center_vertical"/>
-    <LinearLayout
+    <ImageButton
+        android:id="@+id/delete_button"
         android:layout_width="wrap_content"
-        android:layout_height="fill_parent"
-        android:orientation="vertical">
-        <Button
-            android:id="@+id/edit_button"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:layout_weight="1"
-            android:text="@string/edit"
-            android:drawableLeft="@drawable/ic_edit"/>
-        <Button
-            android:id="@+id/delete_button"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:layout_weight="1"
-            android:text="@string/delete"
-            android:drawableLeft="@drawable/ic_delete"/>
-    </LinearLayout>
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:src="@drawable/ic_remove"/>
 </LinearLayout>

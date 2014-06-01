@@ -16,8 +16,6 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import jp.gr.java_conf.neko_daisuki.photonote.Database.Note;
-
 public class NotesFragment extends Fragment {
 
     public interface NotesFragmentListener {
@@ -44,11 +42,11 @@ public class NotesFragment extends Fragment {
             }
         }
 
-        private class EditButtonOnClickListener implements View.OnClickListener {
+        private class ThumbnailOnClickListener implements View.OnClickListener {
 
             private Database.Note.Key mNote;
 
-            public EditButtonOnClickListener(Database.Note.Key note) {
+            public ThumbnailOnClickListener(Database.Note.Key note) {
                 mNote = note;
             }
 
@@ -92,13 +90,12 @@ public class NotesFragment extends Fragment {
 
             Database.Note note = mNotes.get(position);
             ImageView thumbView = (ImageView)view.findViewById(R.id.thumbnail_image);
+            Database.Note.Key key = note.getKey();
+            thumbView.setOnClickListener(new ThumbnailOnClickListener(key));
             String thumbnailPath = note.getThumbnailPath();
             thumbView.setImageURI(Uri.fromFile(new File(thumbnailPath)));
             TextView nameText = (TextView)view.findViewById(R.id.name_text);
             nameText.setText(note.getName());
-            View editButton = view.findViewById(R.id.edit_button);
-            Note.Key key = note.getKey();
-            editButton.setOnClickListener(new EditButtonOnClickListener(key));
             View removeButton = view.findViewById(R.id.delete_button);
             removeButton.setOnClickListener(new RemoveButtonOnClickListener(note));
 
@@ -137,7 +134,7 @@ public class NotesFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_notes, container,
                                          false);
-        ListView list = (ListView)rootView.findViewById(R.id.notes_list);
+        ListView list = (ListView)rootView;
         mAdapter = new Adapter();
         list.setAdapter(mAdapter);
         return rootView;

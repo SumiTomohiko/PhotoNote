@@ -24,10 +24,6 @@
         <convert dpi="xxh" size="144"/>
         <svg2drawables name="ic_add"/>
         <svg2drawables name="ic_remove"/>
-
-        <svg2drawables name="ic_delete"/>
-        <svg2drawables name="ic_edit"/>
-        <svg2drawables name="ic_shot"/>
     </target>
 </project>
 <!--
